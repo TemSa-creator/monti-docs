@@ -1,21 +1,30 @@
 import streamlit as st
-from urllib.parse import parse_qs
+from urllib.parse import unquote
 from fpdf import FPDF
 
 def create_document_pdf(doc_type, data_dict, filename="monti_dokument.pdf", branding=True):
+    """Erstellt ein PDF mit den übergebenen Daten."""
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
+
+    # Titel
     pdf.set_font(style='B')
     pdf.cell(0, 10, f"{doc_type.upper()}", ln=True)
     pdf.set_font(style='')
 
     pdf.ln(5)
+
+    # Inhalte einfügen
     for key, value in data_dict.items():
-        pdf.multi_cell(0, 10, f"{key.capitalize()}: {value}")
+        key_clean = key.replace("_", " ").capitalize()
+        value_clean = unquote(str(value))
+        pdf.multi_cell(0, 10, f"{key_clean}: {value_clean}")
         pdf.ln(1)
 
     pdf.ln(10)
+
+    # Branding
     if branding:
         pdf.set_font("Arial", style='I', size=10)
         pdf.set_text_color(150, 150, 150)
@@ -24,18 +33,19 @@ def create_document_pdf(doc_type, data_dict, filename="monti_dokument.pdf", bran
     pdf.output(filename)
     return filename
 
-# Start
+# Streamlit App
 st.set_page_config(page_title="Monti – PDF Generator", layout="centered")
 st.title("📄 Monti – Dein PDF-Dokument")
 
-query = st.experimental_get_query_params()
+query = st.query_params
+
 if query:
-    doc_type = query.get("type", ["Dokument"])[0]
-    data_dict = {k: v[0] for k, v in query.items() if k != "type"}
+    doc_type = query.get("type", "Dokument")
+    data_dict = {k: v for k, v in query.items() if k != "type"}
 
     st.subheader(f"Vorschau: {doc_type}")
     for key, value in data_dict.items():
-        st.write(f"**{key.capitalize()}**: {value}")
+        st.write(f"**{key.replace('_', ' ').capitalize()}**: {value}")
 
     if st.button("📥 PDF generieren"):
         filename = create_document_pdf(doc_type, data_dict)
