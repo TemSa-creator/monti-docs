@@ -52,7 +52,29 @@ if doc_type == "PDF (Text + Bilder)":
     }
     page_w, page_h = format_mapping[format_option]
 
-    seiten = st.number_input("Wie viele Seiten soll dein PDF haben?", min_value=1, max_value=20, value=2)
+    vorlage = st.selectbox("Vorlage wählen (optional)", ["Freies Projekt", "Kinderbuch (10 Seiten)", "Malbuch (12 Seiten)", "Workbook (7 Seiten)", "Mini-Ratgeber (5 Kapitel)", "Notizbuch (100 leere Seiten)"])
+
+    if vorlage == "Kinderbuch (10 Seiten)":
+        seiten = 10
+    elif vorlage == "Malbuch (12 Seiten)":
+        seiten = 12
+    elif vorlage == "Workbook (7 Seiten)":
+        seiten = 7
+    elif vorlage == "Mini-Ratgeber (5 Kapitel)":
+        seiten = 5
+    elif vorlage == "Notizbuch (100 leere Seiten)":
+        seiten = 100
+    else:
+        seiten = st.number_input("Wie viele Seiten soll dein PDF haben?", min_value=1, max_value=200, value=2)
+
+    logo_file = st.file_uploader("🔗 Optional: Logo hochladen (wird oben rechts eingefügt)", type=["png", "jpg", "jpeg"])
+    use_logo = st.checkbox("Logo auf allen Seiten anzeigen", value=False)
+
+    impressum_text = st.text_area("📎 Optional: Impressumstext eingeben")
+    impressum_position = st.selectbox("Wo soll das Impressum erscheinen?", ["Am Anfang (Seite 1)", "Am Ende (letzte Seite)", "Benutzerdefinierte Seite"])
+    benutzerdefiniert = None
+    if impressum_position == "Benutzerdefinierte Seite":
+        benutzerdefiniert = st.number_input("Auf welcher Seite soll das Impressum stehen?", min_value=1, max_value=seiten, value=seiten)
 
     seiten_content = []
     for i in range(seiten):
@@ -66,8 +88,16 @@ if doc_type == "PDF (Text + Bilder)":
         pdf = FPDF(orientation="P", unit="mm", format=(page_w, page_h))
         pdf.set_auto_page_break(auto=True, margin=10)
 
+        logo_path = None
+        if logo_file:
+            logo_img = Image.open(logo_file)
+            logo_path = "temp_logo.png"
+            logo_img.save(logo_path)
+
         for idx, (text, img_file, layout) in enumerate(seiten_content):
             pdf.add_page()
+            if use_logo and logo_path:
+                pdf.image(logo_path, x=page_w - 40, y=10, w=30)
             pdf.set_font("Arial", size=12)
 
             if layout == "Nur Text":
@@ -103,8 +133,19 @@ if doc_type == "PDF (Text + Bilder)":
                 pdf.image(img_path, x=110, y=pdf.get_y() - 10, w=60)
                 os.remove(img_path)
 
+            # Impressum hinzufügen
+            if impressum_text:
+                if (impressum_position == "Am Anfang (Seite 1)" and idx == 0) or \
+                   (impressum_position == "Am Ende (letzte Seite)" and idx == seiten - 1) or \
+                   (impressum_position == "Benutzerdefinierte Seite" and idx == benutzerdefiniert - 1):
+                    pdf.ln(10)
+                    pdf.set_font("Arial", style='I', size=9)
+                    pdf.multi_cell(0, 8, f"Impressum: {impressum_text}", align='C')
+
         pdf_file = "monti_dokument.pdf"
         pdf.output(pdf_file)
         with open(pdf_file, "rb") as f:
             st.download_button("📥 PDF-Datei herunterladen", f, file_name=pdf_file)
         os.remove(pdf_file)
+        if logo_path:
+            os.remove(logo_path)
