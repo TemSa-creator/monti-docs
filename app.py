@@ -6,16 +6,15 @@ def create_document_pdf(doc_type, data_dict, filename="monti_dokument.pdf", bran
     """Erstellt ein PDF mit den übergebenen Daten."""
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_font("Arial", size=12)
 
-    # Titel
-    pdf.set_font(style='B')
+    # Schriftart korrekt setzen
+    pdf.set_font("Arial", style='B', size=14)
     pdf.cell(0, 10, f"{doc_type.upper()}", ln=True)
-    pdf.set_font(style='')
+    pdf.set_font("Arial", style='', size=12)
 
     pdf.ln(5)
 
-    # Inhalte einfügen
+    # Inhalte
     for key, value in data_dict.items():
         key_clean = key.replace("_", " ").capitalize()
         value_clean = unquote(str(value))
