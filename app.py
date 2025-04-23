@@ -14,7 +14,7 @@ with col1:
     st.title("\U0001F4D8 Monti – Dein PDF- & Excel-Generator")
     st.markdown("Willkommen bei **Monti**, deinem KI-Dokumenten-Assistenten. Du kannst hier Excel-Tabellen erstellen, Bilder hochladen und daraus ein strukturiertes PDF machen – z. B. für Kinderbücher, Berichte oder kreative Projekte.")
 with col2:
-    st.image("https://postimg.cc/PCvk1b4L", width=100)
+    st.image("https://i.postimg.cc/YCbqKbLx/Chat-GPT-Image-23-Apr-2025-13-44-42.png", width=100)
 
 # Auswahl: Excel oder PDF
 doc_type = st.selectbox("Was möchtest du erstellen?", ["PDF (Text + Bilder)", "Excel-Tabelle"])
