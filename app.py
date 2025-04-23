@@ -6,15 +6,19 @@ from PIL import Image
 from io import BytesIO
 
 # App-Titel
-st.set_page_config(page_title="Monti – Dein PDF- & Excel-Generator", layout="centered")
+st.set_page_config(page_title="Monti – Dein PDF- & Excel-Generator", layout="wide")
 
-# Roboter-Bild rechts einfügen
-col1, col2 = st.columns([4, 1])
+col1, col2 = st.columns([1, 3])
 with col1:
-    st.title("\U0001F4D8 Monti – Dein PDF- & Excel-Generator")
-    st.markdown("Willkommen bei **Monti**, deinem KI-Dokumenten-Assistenten. Du kannst hier Excel-Tabellen erstellen, Bilder hochladen und daraus ein strukturiertes PDF machen – z. B. für Kinderbücher, Berichte oder kreative Projekte.")
+    st.image("https://i.postimg.cc/BbmKMy1P/Design-ohne-Titel-8.png", use_column_width=True)
+
 with col2:
-    st.image("https://i.postimg.cc/YCbqKbLx/Chat-GPT-Image-23-Apr-2025-13-44-42.png", width=100)
+    st.title("📘 Monti – Dein PDF- & Excel-Generator")
+    st.markdown(
+        "Willkommen bei **Monti**, deinem KI-Dokumenten-Assistenten. "
+        "Du kannst hier Excel-Tabellen erstellen, Bilder hochladen und daraus ein "
+        "strukturiertes PDF machen – z. B. für Kinderbücher, Berichte oder kreative Projekte."
+    )
 
 # Auswahl: Excel oder PDF
 doc_type = st.selectbox("Was möchtest du erstellen?", ["PDF (Text + Bilder)", "Excel-Tabelle"])
