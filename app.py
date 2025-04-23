@@ -12,7 +12,7 @@ st.set_page_config(page_title="Monti – Dein PDF- & Excel-Generator", layout="w
 st.markdown("""
     <div style='display: flex; justify-content: space-between; align-items: center;'>
         <h1 style='display: inline;'>📘 Monti – Dein PDF- & Excel-Generator</h1>
-        <img src='https://github.com/TemSa-creator/monti-docs/blob/main/Design%20ohne%20Titel%20(8).png?raw=true' style='height: 140px;'>
+        <img src='https://raw.githubusercontent.com/TemSa-creator/monti-docs/main/Design%20ohne%20Titel%20(8).png' style='height: 140px;'>
     </div>
     <p>Willkommen bei <strong>Monti</strong>, deinem KI-Dokumenten-Assistenten. Du kannst hier Excel-Tabellen erstellen, Bilder hochladen und daraus ein strukturiertes PDF machen – z. B. für Kinderbücher, Berichte oder kreative Projekte.</p>
 """, unsafe_allow_html=True)
