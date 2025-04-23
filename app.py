@@ -12,7 +12,7 @@ st.set_page_config(page_title="Monti – Dein PDF- & Excel-Generator", layout="w
 col1, col2 = st.columns([1, 3], gap="large")
 with col1:
     st.markdown("## ")  # Platzhalter
-    st.image("https://i.postimg.cc/58fe5e1f-f59f-41b2-a43a-977c994a5823.png", use_container_width=True)
+    st.image("monti_bot.png", use_container_width=True)
 
 with col2:
     st.title("📘 Monti – Dein PDF- & Excel-Generator")
