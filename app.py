@@ -3,15 +3,16 @@ import pandas as pd
 from fpdf import FPDF
 import os
 from PIL import Image
-from io import BytesIO
 
 # App-Titel
 st.set_page_config(page_title="Monti – Dein PDF- & Excel-Generator", layout="wide")
 
-# App-Überschrift ohne Bild
+# App-Überschrift
 st.title("📘 Monti – Dein PDF- & Excel-Generator")
 st.markdown(
-    "Willkommen bei **Monti**, deinem KI-Dokumenten-Assistenten. Du kannst hier Excel-Tabellen erstellen, Bilder hochladen und daraus ein strukturiertes PDF machen – z. B. für Kinderbücher, Berichte oder kreative Projekte."
+    "Willkommen bei **Monti**, deinem KI-Dokumenten-Assistenten. "
+    "Du kannst hier Excel-Tabellen erstellen, Bilder hochladen und daraus ein "
+    "strukturiertes PDF machen – z. B. für Kinderbücher, Berichte oder kreative Projekte."
 )
 
 # Auswahl: Excel oder PDF
@@ -20,7 +21,6 @@ doc_type = st.selectbox("Was möchtest du erstellen?", ["PDF (Text + Bilder)", "
 # Excel-Modus
 if doc_type == "Excel-Tabelle":
     st.subheader("📊 Excel-Tabelle erstellen")
-
     columns_input = st.text_input("Gib die Spaltennamen ein (durch Komma getrennt)", "Datum,Betrag,Kategorie")
     columns = [col.strip() for col in columns_input.split(",")]
 
@@ -55,7 +55,15 @@ if doc_type == "PDF (Text + Bilder)":
     }
     page_w, page_h = format_mapping[format_option]
 
-    vorlage = st.selectbox("Vorlage wählen (optional)", ["Freies Projekt", "Kinderbuch (10 Seiten)", "Malbuch (12 Seiten)", "Workbook (7 Seiten)", "Mini-Ratgeber (5 Kapitel)", "Notizbuch (100 leere Seiten)", "Mehrere Bilder automatisch anordnen"])
+    vorlage = st.selectbox("Vorlage wählen (optional)", [
+        "Freies Projekt",
+        "Kinderbuch (10 Seiten)",
+        "Malbuch (12 Seiten)",
+        "Workbook (7 Seiten)",
+        "Mini-Ratgeber (5 Kapitel)",
+        "Notizbuch (100 leere Seiten)",
+        "Mehrere Bilder automatisch anordnen"
+    ])
 
     if vorlage == "Kinderbuch (10 Seiten)":
         seiten = 10
@@ -104,7 +112,10 @@ if doc_type == "PDF (Text + Bilder)":
             st.markdown(f"### Seite {i+1}")
             text = st.text_area(f"Text für Seite {i+1}", key=f"text_{i}")
             image = st.file_uploader(f"Bild für Seite {i+1} hochladen", type=["png", "jpg", "jpeg"], key=f"img_{i}")
-            layout_style = st.selectbox(f"Layout-Stil für Seite {i+1}", ["Bild oben, Text unten", "Text oben, Bild unten", "Text neben Bild", "Nur Text", "Nur Bild"], key=f"layout_{i}")
+            layout_style = st.selectbox(f"Layout-Stil für Seite {i+1}", [
+                "Bild oben, Text unten", "Text oben, Bild unten",
+                "Text neben Bild", "Nur Text", "Nur Bild"
+            ], key=f"layout_{i}")
             seiten_content.append((text, image, layout_style))
 
         if st.button("📄 PDF generieren"):
