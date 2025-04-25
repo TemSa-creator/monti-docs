@@ -80,7 +80,7 @@ if doc_type == "PDF (Text + Bilder)":
         if bilder_upload and st.button("PDF aus Bildern erstellen"):
             pdf = FPDF(orientation="P", unit="mm", format=(page_w, page_h))
             pdf.set_auto_page_break(auto=True, margin=10)
-            pdf.add_font('DejaVu', '', 'DejaVuSans.ttf', uni=True)
+            pdf.add_font('DejaVu', '', os.path.join(os.path.dirname(__file__), 'DejaVuSans.ttf'), uni=True)
             pdf.set_font('DejaVu', '', 14)
             for idx, img_file in enumerate(bilder_upload):
                 pdf.add_page()
@@ -123,7 +123,7 @@ if doc_type == "PDF (Text + Bilder)":
         if st.button("PDF generieren"):
             pdf = FPDF(orientation="P", unit="mm", format=(page_w, page_h))
             pdf.set_auto_page_break(auto=True, margin=10)
-            pdf.add_font('DejaVu', '', 'DejaVuSans.ttf', uni=True)
+            pdf.add_font('DejaVu', '', os.path.join(os.path.dirname(__file__), 'DejaVuSans.ttf'), uni=True)
             pdf.set_font('DejaVu', '', 12)
 
             logo_path = None
