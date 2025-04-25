@@ -19,6 +19,12 @@ st.markdown(
 # Auswahl: Excel oder PDF
 doc_type = st.selectbox("Was möchtest du erstellen?", ["PDF (Text + Bilder)", "Excel-Tabelle"])
 
+# Schriftart-Überprüfung
+font_path = "fonts/NotoSans-Regular.ttf"
+if not os.path.exists(font_path):
+    st.error(f"Fehler: Die Schriftart 'NotoSans-Regular.ttf' wurde nicht im Ordner 'fonts' gefunden! Bitte sicherstellen, dass die Datei vorhanden ist.")
+    st.stop()
+
 # Excel-Modus
 if doc_type == "Excel-Tabelle":
     st.subheader("Excel-Tabelle erstellen")
@@ -74,7 +80,6 @@ if doc_type == "PDF (Text + Bilder)":
         "Mehrere Bilder automatisch anordnen"
     ])
 
-    # Logik für vordefinierte Vorlagen
     if vorlage == "Kinderbuch (10 Seiten)":
         seiten = 10
     elif vorlage == "Malbuch (12 Seiten)":
@@ -90,12 +95,13 @@ if doc_type == "PDF (Text + Bilder)":
         if bilder_upload and st.button("PDF aus Bildern erstellen"):
             pdf = FPDF(orientation="P", unit="mm", format=(page_w, page_h))
             pdf.set_auto_page_break(auto=True, margin=10)
+            
+            # Schriftart hinzufügen und Fehlerüberprüfung
             try:
-                # Hier die Schriftart einfügen
-                pdf.add_font('Noto', '', 'fonts/NotoSans-Regular.ttf', uni=True)
+                pdf.add_font('Noto', '', font_path, uni=True)
                 pdf.set_font('Noto', '', heading_size)
-            except:
-                st.error("Schriftart konnte nicht geladen werden. Bitte überprüfe den Font-Pfad!")
+            except Exception as e:
+                st.error(f"Schriftart konnte nicht geladen werden: {e}. Bitte überprüfe den Font-Pfad!")
                 st.stop()
                 
             for idx, img_file in enumerate(bilder_upload):
@@ -139,11 +145,13 @@ if doc_type == "PDF (Text + Bilder)":
         if st.button("PDF generieren"):
             pdf = FPDF(orientation="P", unit="mm", format=(page_w, page_h))
             pdf.set_auto_page_break(auto=True, margin=10)
+            
+            # Schriftart hinzufügen und Fehlerüberprüfung
             try:
-                pdf.add_font('Noto', '', 'fonts/NotoSans-Regular.ttf', uni=True)
+                pdf.add_font('Noto', '', font_path, uni=True)
                 pdf.set_font('Noto', '', text_size)
-            except:
-                st.error("Schriftart konnte nicht geladen werden. Bitte überprüfe den Font-Pfad!")
+            except Exception as e:
+                st.error(f"Schriftart konnte nicht geladen werden: {e}. Bitte überprüfe den Font-Pfad!")
                 st.stop()
 
             logo_path = None
