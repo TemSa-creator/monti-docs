@@ -89,8 +89,14 @@ if doc_type == "PDF (Text + Bilder)":
         if bilder_upload and st.button("PDF aus Bildern erstellen"):
             pdf = FPDF(orientation="P", unit="mm", format=(page_w, page_h))
             pdf.set_auto_page_break(auto=True, margin=10)
-            pdf.add_font('Noto', '', 'NotoSans-Regular.ttf', uni=True)
-            pdf.set_font('Noto', '', heading_size)
+            try:
+                # Hier die Schriftart einfügen
+                pdf.add_font('Noto', '', 'NotoSans-Regular.ttf', uni=True)
+                pdf.set_font('Noto', '', heading_size)
+            except:
+                st.error("Schriftart konnte nicht geladen werden. Bitte überprüfe den Font-Pfad!")
+                st.stop()
+                
             for idx, img_file in enumerate(bilder_upload):
                 pdf.add_page()
                 img = Image.open(img_file)
@@ -132,8 +138,12 @@ if doc_type == "PDF (Text + Bilder)":
         if st.button("PDF generieren"):
             pdf = FPDF(orientation="P", unit="mm", format=(page_w, page_h))
             pdf.set_auto_page_break(auto=True, margin=10)
-            pdf.add_font('Noto', '', 'NotoSans-Regular.ttf', uni=True)
-            pdf.set_font('Noto', '', text_size)
+            try:
+                pdf.add_font('Noto', '', 'NotoSans-Regular.ttf', uni=True)
+                pdf.set_font('Noto', '', text_size)
+            except:
+                st.error("Schriftart konnte nicht geladen werden. Bitte überprüfe den Font-Pfad!")
+                st.stop()
 
             logo_path = None
             if logo_file:
