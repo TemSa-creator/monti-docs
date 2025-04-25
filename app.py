@@ -7,7 +7,7 @@ from PIL import Image
 # App-Titel
 st.set_page_config(page_title="Monti – Dein PDF- & Excel-Generator", layout="wide")
 
-# App-Header
+# App-Überschrift
 st.title("Monti – Dein PDF- & Excel-Generator")
 st.markdown(
     "Willkommen bei **Monti**, deinem KI-Dokumenten-Assistenten. "
@@ -15,7 +15,7 @@ st.markdown(
     "strukturiertes PDF machen – z.\u202fB. für Kinderbücher, Berichte oder kreative Projekte."
 )
 
-# Auswahl: PDF oder Excel
+# Auswahl: Excel oder PDF
 doc_type = st.selectbox("Was möchtest du erstellen?", ["PDF (Text + Bilder)", "Excel-Tabelle"])
 
 # Excel-Modus
@@ -80,8 +80,8 @@ if doc_type == "PDF (Text + Bilder)":
         if bilder_upload and st.button("PDF aus Bildern erstellen"):
             pdf = FPDF(orientation="P", unit="mm", format=(page_w, page_h))
             pdf.set_auto_page_break(auto=True, margin=10)
-            pdf.add_font("NotoSans", "", "NotoSans-Regular.ttf", uni=True)
-            pdf.set_font("NotoSans", "", 14)
+            pdf.add_font('Noto', '', 'NotoSans-Regular.ttf', uni=True)
+            pdf.set_font('Noto', '', 14)
             for idx, img_file in enumerate(bilder_upload):
                 pdf.add_page()
                 img = Image.open(img_file)
@@ -123,8 +123,8 @@ if doc_type == "PDF (Text + Bilder)":
         if st.button("PDF generieren"):
             pdf = FPDF(orientation="P", unit="mm", format=(page_w, page_h))
             pdf.set_auto_page_break(auto=True, margin=10)
-            pdf.add_font("NotoSans", "", "NotoSans-Regular.ttf", uni=True)
-            pdf.set_font("NotoSans", "", 12)
+            pdf.add_font('Noto', '', 'NotoSans-Regular.ttf', uni=True)
+            pdf.set_font('Noto', '', 12)
 
             logo_path = None
             if logo_file:
@@ -175,7 +175,7 @@ if doc_type == "PDF (Text + Bilder)":
                        (impressum_position == "Am Ende (letzte Seite)" and idx == seiten - 1) or \
                        (impressum_position == "Benutzerdefinierte Seite" and idx == benutzerdefiniert - 1):
                         pdf.ln(10)
-                        pdf.set_font("NotoSans", style='I', size=9)
+                        pdf.set_font("Noto", style='I', size=9)
                         pdf.multi_cell(0, 8, f"Impressum: {impressum_text}", align='C')
 
             pdf_file = "monti_dokument.pdf"
