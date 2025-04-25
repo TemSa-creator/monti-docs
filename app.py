@@ -3,6 +3,7 @@ import pandas as pd
 from fpdf import FPDF
 import os
 from PIL import Image
+import re
 
 # App-Titel
 st.set_page_config(page_title="Monti – Dein PDF- & Excel-Generator", layout="wide")
@@ -137,23 +138,23 @@ if doc_type == "PDF (Text + Bilder)":
                 if use_logo and logo_path:
                     pdf.image(logo_path, x=page_w - 40, y=10, w=30)
 
-                if layout == "Nur Text":
-                    pdf.multi_cell(0, 10, text, align='C')
-                elif layout == "Nur Bild" and img_file:
+                if layout == "Nur Text" or layout == "Text oben, Bild unten" or layout == "Text neben Bild":
+                    paragraphs = [p.strip() for p in text.split("\n") if p.strip()]
+                    for paragraph in paragraphs:
+                        if paragraph.isupper() or re.match(r"^\d+\.|#|-", paragraph.strip()):
+                            pdf.set_font("Noto", style='B', size=14)
+                        else:
+                            pdf.set_font("Noto", size=11)
+                        pdf.multi_cell(0, 10, paragraph, align='C')
+
+                if layout == "Nur Bild" and img_file:
                     img = Image.open(img_file)
                     img_path = f"temp_img_{idx}.png"
                     img.save(img_path)
                     pdf.image(img_path, x=10, y=20, w=page_w - 20)
                     os.remove(img_path)
-                elif layout == "Text oben, Bild unten":
-                    pdf.multi_cell(0, 10, text, align='C')
-                    if img_file:
-                        img = Image.open(img_file)
-                        img_path = f"temp_img_{idx}.png"
-                        img.save(img_path)
-                        pdf.image(img_path, x=10, y=pdf.get_y() + 10, w=page_w - 20)
-                        os.remove(img_path)
-                elif layout == "Bild oben, Text unten":
+
+                if layout == "Bild oben, Text unten":
                     if img_file:
                         img = Image.open(img_file)
                         img_path = f"temp_img_{idx}.png"
@@ -161,14 +162,13 @@ if doc_type == "PDF (Text + Bilder)":
                         pdf.image(img_path, x=10, y=20, w=page_w - 20)
                         os.remove(img_path)
                         pdf.set_y(130)
-                    pdf.multi_cell(0, 10, text, align='C')
-                elif layout == "Text neben Bild" and img_file:
-                    pdf.multi_cell(100, 10, text)
-                    img = Image.open(img_file)
-                    img_path = f"temp_img_{idx}.png"
-                    img.save(img_path)
-                    pdf.image(img_path, x=110, y=pdf.get_y() - 10, w=60)
-                    os.remove(img_path)
+                    paragraphs = [p.strip() for p in text.split("\n") if p.strip()]
+                    for paragraph in paragraphs:
+                        if paragraph.isupper() or re.match(r"^\d+\.|#|-", paragraph.strip()):
+                            pdf.set_font("Noto", style='B', size=14)
+                        else:
+                            pdf.set_font("Noto", size=11)
+                        pdf.multi_cell(0, 10, paragraph, align='C')
 
                 if impressum_text:
                     if (impressum_position == "Am Anfang (Seite 1)" and idx == 0) or \
