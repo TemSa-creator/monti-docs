@@ -1,8 +1,7 @@
 import streamlit as st
-import pandas as pd
 from fpdf import FPDF
-import os
 from PIL import Image
+import os
 import re
 
 # App-Titel
@@ -12,51 +11,62 @@ st.set_page_config(page_title="Monti – Dein PDF-Generator", layout="wide")
 st.title("Monti – Dein PDF-Generator")
 st.markdown(
     "Willkommen bei **Monti**, deinem KI-Dokumenten-Assistenten. "
-    "Du kannst hier Text eingeben und daraus ein PDF-Dokument erstellen – einfach und schnell."
+    "Gib den Text ein, lade Bilder hoch, und Monti erstellt automatisch ein perfekt formatiertes PDF!"
 )
 
-# Auswahl: PDF erstellen
-doc_type = st.selectbox("Was möchtest du erstellen?", ["PDF (Text)"])
+# Eingabe des Textes
+text_input = st.text_area("Gib den Text für das PDF ein (Text wird automatisch auf Seiten verteilt)")
 
-# PDF-Modus
-if doc_type == "PDF (Text)":
-    st.subheader("PDF mit Text erstellen")
+# Auswahl für das Layout der Bilder
+layout_option = st.selectbox("Wie möchtest du die Bilder anordnen?", [
+    "Bild oben, Text unten",
+    "Text oben, Bild unten",
+    "Bild und Text nebeneinander",
+    "Nur Text",
+    "Nur Bild"
+])
 
-    # Schriftgrößen für Text und Überschrift wählen
-    text_size = st.slider("Wähle die Schriftgröße für den Text (10-12 pt)", 10, 12, 11)
-    heading_size = st.slider("Wähle die Schriftgröße für Überschriften (13-15 pt)", 13, 15, 14)
+# Bilder hochladen
+image_files = st.file_uploader("Lade Bilder hoch", accept_multiple_files=True, type=["jpg", "jpeg", "png"])
 
-    # Seitenanzahl und Seitenzahlen
-    total_pages = st.slider("Wie viele Seiten soll dein PDF haben? (1-1000)", 1, 1000, 2)
-    show_page_numbers = st.checkbox("Seitenzahlen auf allen Seiten anzeigen", value=False)
+# PDF erstellen, wenn der Button geklickt wird
+if st.button("PDF generieren"):
+    # PDF-Instanz erstellen
+    pdf = FPDF(orientation="P", unit="mm", format="A4")
+    pdf.set_auto_page_break(auto=True, margin=10)
+    pdf.set_font("Arial", size=12)  # Standard-Schriftart und Größe
 
-    seiten_content = []
-    for i in range(total_pages):
-        st.markdown(f"### Seite {i+1}")
-        text = st.text_area(f"Text für Seite {i+1}", key=f"text_{i}")
+    # Text auf Seiten verteilen und automatisch Seiten erstellen
+    paragraphs = [p.strip() for p in text_input.split("\n") if p.strip()]
+    page_limit = 50  # max. Zeilen pro Seite
 
-        seiten_content.append(text)
-
-    if st.button("PDF generieren"):
-        pdf = FPDF(orientation="P", unit="mm", format="A4")
-        pdf.set_auto_page_break(auto=True, margin=10)
-
-        # Standard-Schriftart (keine benutzerdefinierte Schriftart erforderlich)
-        pdf.set_font("Arial", size=text_size)
-
-        for idx, text in enumerate(seiten_content):
+    for i, paragraph in enumerate(paragraphs):
+        if i % page_limit == 0:
             pdf.add_page()
-            paragraphs = [p.strip() for p in text.split("\n") if p.strip()]
-            for paragraph in paragraphs:
-                if paragraph.isupper() or re.match(r"^\d+\.|#|-", paragraph.strip()):
-                    pdf.set_font("Arial", style='B', size=heading_size)  # Fettdruck für Überschriften
-                else:
-                    pdf.set_font("Arial", size=text_size)
-                pdf.multi_cell(0, 10, paragraph, align='L')
 
-        pdf_file = "monti_text_dokument.pdf"
-        pdf.output(pdf_file)
+        if paragraph.isupper() or re.match(r"^\d+\.|#|-", paragraph.strip()):
+            pdf.set_font("Arial", style='B', size=14)  # Überschrift (fett)
+        else:
+            pdf.set_font("Arial", size=12)  # Normaler Text
 
-        with open(pdf_file, "rb") as f:
-            st.download_button("PDF-Datei herunterladen", f, file_name=pdf_file)
-        os.remove(pdf_file)
+        pdf.multi_cell(0, 10, paragraph, align='L')  # Text hinzufügen
+
+    # Bilder hinzufügen (falls vorhanden)
+    if image_files:
+        for img_file in image_files:
+            pdf.add_page()
+            img = Image.open(img_file)
+            img_path = f"temp_image.png"
+            img.save(img_path)
+            pdf.image(img_path, x=10, y=20, w=190)
+            os.remove(img_path)
+
+    # PDF-Datei speichern und herunterladen
+    pdf_output = "monti_generated_document.pdf"
+    pdf.output(pdf_output)
+
+    with open(pdf_output, "rb") as f:
+        st.download_button("PDF-Datei herunterladen", f, file_name=pdf_output)
+
+    # Temp-Datei entfernen
+    os.remove(pdf_output)
