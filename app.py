@@ -89,8 +89,8 @@ if doc_type == "PDF (Text + Bilder)":
         if bilder_upload and st.button("PDF aus Bildern erstellen"):
             pdf = FPDF(orientation="P", unit="mm", format=(page_w, page_h))
             pdf.set_auto_page_break(auto=True, margin=10)
-            
-            # Verwendung der Standard-Schriftart (Arial)
+
+            # Verwenden der Standard-Schriftart (Arial) ohne benutzerdefinierte Schriftarten
             pdf.set_font("Arial", size=heading_size)
 
             for idx, img_file in enumerate(bilder_upload):
