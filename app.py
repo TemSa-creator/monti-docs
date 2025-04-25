@@ -13,7 +13,7 @@ st.title("Monti – Dein PDF- & Excel-Generator")
 st.markdown(
     "Willkommen bei **Monti**, deinem KI-Dokumenten-Assistenten. "
     "Du kannst hier Excel-Tabellen erstellen, Bilder hochladen und daraus ein "
-    "strukturiertes PDF machen – z.\u202fB. für Kinderbücher, Berichte oder kreative Projekte."
+    "strukturiertes PDF machen – z. B. für Kinderbücher, Berichte oder kreative Projekte."
 )
 
 # Auswahl: Excel oder PDF
@@ -56,6 +56,14 @@ if doc_type == "PDF (Text + Bilder)":
     }
     page_w, page_h = format_mapping[format_option]
 
+    # Schriftgrößen für Text und Überschrift wählen
+    text_size = st.slider("Wähle die Schriftgröße für den Text (10-12 pt)", 10, 12, 11)
+    heading_size = st.slider("Wähle die Schriftgröße für Überschriften (13-15 pt)", 13, 15, 14)
+
+    # Seitenanzahl und Seitenzahlen
+    total_pages = st.slider("Wie viele Seiten soll dein PDF haben? (1-1000)", 1, 1000, 2)
+    show_page_numbers = st.checkbox("Seitenzahlen auf allen Seiten anzeigen", value=False)
+
     vorlage = st.selectbox("Vorlage wählen (optional)", [
         "Freies Projekt",
         "Kinderbuch (10 Seiten)",
@@ -82,7 +90,7 @@ if doc_type == "PDF (Text + Bilder)":
             pdf = FPDF(orientation="P", unit="mm", format=(page_w, page_h))
             pdf.set_auto_page_break(auto=True, margin=10)
             pdf.add_font('Noto', '', 'NotoSans-Regular.ttf', uni=True)
-            pdf.set_font('Noto', '', 14)
+            pdf.set_font('Noto', '', heading_size)
             for idx, img_file in enumerate(bilder_upload):
                 pdf.add_page()
                 img = Image.open(img_file)
@@ -98,7 +106,7 @@ if doc_type == "PDF (Text + Bilder)":
             st.stop()
         seiten = 0
     else:
-        seiten = st.number_input("Wie viele Seiten soll dein PDF haben?", min_value=1, max_value=200, value=2)
+        seiten = total_pages
 
     if seiten > 0:
         logo_file = st.file_uploader("Optional: Logo hochladen (wird oben rechts eingefügt)", type=["png", "jpg", "jpeg"])
@@ -125,7 +133,7 @@ if doc_type == "PDF (Text + Bilder)":
             pdf = FPDF(orientation="P", unit="mm", format=(page_w, page_h))
             pdf.set_auto_page_break(auto=True, margin=10)
             pdf.add_font('Noto', '', 'NotoSans-Regular.ttf', uni=True)
-            pdf.set_font('Noto', '', 12)
+            pdf.set_font('Noto', '', text_size)
 
             logo_path = None
             if logo_file:
@@ -142,9 +150,9 @@ if doc_type == "PDF (Text + Bilder)":
                     paragraphs = [p.strip() for p in text.split("\n") if p.strip()]
                     for paragraph in paragraphs:
                         if paragraph.isupper() or re.match(r"^\d+\.|#|-", paragraph.strip()):
-                            pdf.set_font("Noto", style='B', size=14)
+                            pdf.set_font("Noto", style='B', size=heading_size)
                         else:
-                            pdf.set_font("Noto", size=11)
+                            pdf.set_font("Noto", size=text_size)
                         pdf.multi_cell(0, 10, paragraph, align='C')
 
                 if layout == "Nur Bild" and img_file:
@@ -165,9 +173,9 @@ if doc_type == "PDF (Text + Bilder)":
                     paragraphs = [p.strip() for p in text.split("\n") if p.strip()]
                     for paragraph in paragraphs:
                         if paragraph.isupper() or re.match(r"^\d+\.|#|-", paragraph.strip()):
-                            pdf.set_font("Noto", style='B', size=14)
+                            pdf.set_font("Noto", style='B', size=heading_size)
                         else:
-                            pdf.set_font("Noto", size=11)
+                            pdf.set_font("Noto", size=text_size)
                         pdf.multi_cell(0, 10, paragraph, align='C')
 
                 if impressum_text:
