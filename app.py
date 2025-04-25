@@ -80,8 +80,13 @@ if doc_type == "PDF (Text + Bilder)":
         if bilder_upload and st.button("PDF aus Bildern erstellen"):
             pdf = FPDF(orientation="P", unit="mm", format=(page_w, page_h))
             pdf.set_auto_page_break(auto=True, margin=10)
-            pdf.add_font('DejaVu', '', os.path.join(os.path.dirname(__file__), 'DejaVuSans.ttf'), uni=True)
-            pdf.set_font('DejaVu', '', 14)
+            font_path = "DejaVuSans.ttf"
+            if os.path.exists(font_path):
+                pdf.add_font('DejaVu', '', font_path, uni=True)
+                pdf.set_font('DejaVu', '', 14)
+            else:
+                st.error("⚠️ Die Schriftdatei 'DejaVuSans.ttf' wurde nicht gefunden.")
+                st.stop()
             for idx, img_file in enumerate(bilder_upload):
                 pdf.add_page()
                 img = Image.open(img_file)
@@ -123,8 +128,13 @@ if doc_type == "PDF (Text + Bilder)":
         if st.button("PDF generieren"):
             pdf = FPDF(orientation="P", unit="mm", format=(page_w, page_h))
             pdf.set_auto_page_break(auto=True, margin=10)
-            pdf.add_font('DejaVu', '', os.path.join(os.path.dirname(__file__), 'DejaVuSans.ttf'), uni=True)
-            pdf.set_font('DejaVu', '', 12)
+            font_path = "DejaVuSans.ttf"
+            if os.path.exists(font_path):
+                pdf.add_font('DejaVu', '', font_path, uni=True)
+                pdf.set_font('DejaVu', '', 12)
+            else:
+                st.error("⚠️ Die Schriftdatei 'DejaVuSans.ttf' wurde nicht gefunden.")
+                st.stop()
 
             logo_path = None
             if logo_file:
