@@ -74,6 +74,7 @@ if doc_type == "PDF (Text + Bilder)":
         "Mehrere Bilder automatisch anordnen"
     ])
 
+    # Logik für vordefinierte Vorlagen
     if vorlage == "Kinderbuch (10 Seiten)":
         seiten = 10
     elif vorlage == "Malbuch (12 Seiten)":
@@ -91,7 +92,7 @@ if doc_type == "PDF (Text + Bilder)":
             pdf.set_auto_page_break(auto=True, margin=10)
             try:
                 # Hier die Schriftart einfügen
-                pdf.add_font('Noto', '', 'NotoSans-Regular.ttf', uni=True)
+                pdf.add_font('Noto', '', 'fonts/NotoSans-Regular.ttf', uni=True)
                 pdf.set_font('Noto', '', heading_size)
             except:
                 st.error("Schriftart konnte nicht geladen werden. Bitte überprüfe den Font-Pfad!")
@@ -139,7 +140,7 @@ if doc_type == "PDF (Text + Bilder)":
             pdf = FPDF(orientation="P", unit="mm", format=(page_w, page_h))
             pdf.set_auto_page_break(auto=True, margin=10)
             try:
-                pdf.add_font('Noto', '', 'NotoSans-Regular.ttf', uni=True)
+                pdf.add_font('Noto', '', 'fonts/NotoSans-Regular.ttf', uni=True)
                 pdf.set_font('Noto', '', text_size)
             except:
                 st.error("Schriftart konnte nicht geladen werden. Bitte überprüfe den Font-Pfad!")
