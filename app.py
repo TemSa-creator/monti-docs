@@ -8,11 +8,11 @@ from PIL import Image
 st.set_page_config(page_title="Monti – Dein PDF- & Excel-Generator", layout="wide")
 
 # App-Überschrift
-st.title("\ud83d\udcd8 Monti – Dein PDF- & Excel-Generator")
+st.title("Monti – Dein PDF- & Excel-Generator")
 st.markdown(
     "Willkommen bei **Monti**, deinem KI-Dokumenten-Assistenten. "
     "Du kannst hier Excel-Tabellen erstellen, Bilder hochladen und daraus ein "
-    "strukturiertes PDF machen – z.\u202fB. für Kinderbücher, Berichte oder kreative Projekte."
+    "strukturiertes PDF machen – z. B. für Kinderbücher, Berichte oder kreative Projekte."
 )
 
 # Auswahl: Excel oder PDF
@@ -20,7 +20,7 @@ doc_type = st.selectbox("Was möchtest du erstellen?", ["PDF (Text + Bilder)", "
 
 # Excel-Modus
 if doc_type == "Excel-Tabelle":
-    st.subheader("\ud83d\udcc8 Excel-Tabelle erstellen")
+    st.subheader("Excel-Tabelle erstellen")
     columns_input = st.text_input("Gib die Spaltennamen ein (durch Komma getrennt)", "Datum,Betrag,Kategorie")
     columns = [col.strip() for col in columns_input.split(",")]
 
@@ -34,17 +34,17 @@ if doc_type == "Excel-Tabelle":
             row.append(value)
         data.append(row)
 
-    if st.button("\ud83d\udcc5 Excel generieren"):
+    if st.button("Excel generieren"):
         df = pd.DataFrame(data, columns=columns)
         file_name = "monti_excel_tabelle.xlsx"
         df.to_excel(file_name, index=False)
         with open(file_name, "rb") as f:
-            st.download_button("\ud83d\udcc5 Excel-Datei herunterladen", f, file_name=file_name)
+            st.download_button("Excel-Datei herunterladen", f, file_name=file_name)
         os.remove(file_name)
 
 # PDF-Modus
 if doc_type == "PDF (Text + Bilder)":
-    st.subheader("\ud83d\udcc4 PDF mit Bildern und Text erstellen")
+    st.subheader("PDF mit Bildern und Text erstellen")
 
     format_option = st.selectbox("Wähle dein Buchformat (KDP-kompatibel):", ["6 x 9 Zoll", "7 x 10 Zoll", "8.25 x 11 Zoll", "A5"])
     format_mapping = {
@@ -77,7 +77,7 @@ if doc_type == "PDF (Text + Bilder)":
         seiten = 100
     elif vorlage == "Mehrere Bilder automatisch anordnen":
         bilder_upload = st.file_uploader("Mehrere Bilder hochladen", accept_multiple_files=True, type=["jpg", "jpeg", "png"])
-        if bilder_upload and st.button("\ud83d\udcc4 PDF aus Bildern erstellen"):
+        if bilder_upload and st.button("PDF aus Bildern erstellen"):
             pdf = FPDF(orientation="P", unit="mm", format=(page_w, page_h))
             pdf.set_auto_page_break(auto=True, margin=10)
             pdf.add_font('DejaVu', '', 'DejaVuSans.ttf', uni=True)
@@ -92,7 +92,7 @@ if doc_type == "PDF (Text + Bilder)":
             pdf_file = "monti_bilderbuch.pdf"
             pdf.output(pdf_file)
             with open(pdf_file, "rb") as f:
-                st.download_button("\ud83d\udcc4 PDF-Datei herunterladen", f, file_name=pdf_file)
+                st.download_button("PDF-Datei herunterladen", f, file_name=pdf_file)
             st.success("PDF mit Bildern erfolgreich erstellt!")
             st.stop()
         seiten = 0
@@ -100,10 +100,10 @@ if doc_type == "PDF (Text + Bilder)":
         seiten = st.number_input("Wie viele Seiten soll dein PDF haben?", min_value=1, max_value=200, value=2)
 
     if seiten > 0:
-        logo_file = st.file_uploader("\ud83d\udd17 Optional: Logo hochladen (wird oben rechts eingefügt)", type=["png", "jpg", "jpeg"])
+        logo_file = st.file_uploader("Optional: Logo hochladen (wird oben rechts eingefügt)", type=["png", "jpg", "jpeg"])
         use_logo = st.checkbox("Logo auf allen Seiten anzeigen", value=False)
 
-        impressum_text = st.text_area("\ud83d\udcce Optional: Impressumstext eingeben")
+        impressum_text = st.text_area("Optional: Impressumstext eingeben")
         impressum_position = st.selectbox("Wo soll das Impressum erscheinen?", ["Am Anfang (Seite 1)", "Am Ende (letzte Seite)", "Benutzerdefinierte Seite"])
         benutzerdefiniert = None
         if impressum_position == "Benutzerdefinierte Seite":
@@ -120,7 +120,7 @@ if doc_type == "PDF (Text + Bilder)":
             ], key=f"layout_{i}")
             seiten_content.append((text, image, layout_style))
 
-        if st.button("\ud83d\udcc4 PDF generieren"):
+        if st.button("PDF generieren"):
             pdf = FPDF(orientation="P", unit="mm", format=(page_w, page_h))
             pdf.set_auto_page_break(auto=True, margin=10)
             pdf.add_font('DejaVu', '', 'DejaVuSans.ttf', uni=True)
@@ -181,7 +181,7 @@ if doc_type == "PDF (Text + Bilder)":
             pdf_file = "monti_dokument.pdf"
             pdf.output(pdf_file)
             with open(pdf_file, "rb") as f:
-                st.download_button("\ud83d\udcc4 PDF-Datei herunterladen", f, file_name=pdf_file)
+                st.download_button("PDF-Datei herunterladen", f, file_name=pdf_file)
             os.remove(pdf_file)
             if logo_path:
                 os.remove(logo_path)
