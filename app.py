@@ -1,5 +1,4 @@
 import streamlit as st
-import pandas as pd
 from fpdf import FPDF
 import os
 from PIL import Image
@@ -19,12 +18,6 @@ st.markdown(
 # Auswahl: Excel oder PDF
 doc_type = st.selectbox("Was möchtest du erstellen?", ["PDF (Text + Bilder)", "Excel-Tabelle"])
 
-# Schriftart-Überprüfung
-font_path = "fonts/NotoSans-Regular.ttf"
-if not os.path.exists(font_path):
-    st.error(f"Fehler: Die Schriftart 'NotoSans-Regular.ttf' wurde nicht im Ordner 'fonts' gefunden! Bitte sicherstellen, dass die Datei vorhanden ist.")
-    st.stop()
-
 # Excel-Modus
 if doc_type == "Excel-Tabelle":
     st.subheader("Excel-Tabelle erstellen")
@@ -42,6 +35,7 @@ if doc_type == "Excel-Tabelle":
         data.append(row)
 
     if st.button("Excel generieren"):
+        import pandas as pd
         df = pd.DataFrame(data, columns=columns)
         file_name = "monti_excel_tabelle.xlsx"
         df.to_excel(file_name, index=False)
@@ -96,14 +90,9 @@ if doc_type == "PDF (Text + Bilder)":
             pdf = FPDF(orientation="P", unit="mm", format=(page_w, page_h))
             pdf.set_auto_page_break(auto=True, margin=10)
             
-            # Schriftart hinzufügen und Fehlerüberprüfung
-            try:
-                pdf.add_font('Noto', '', font_path, uni=True)
-                pdf.set_font('Noto', '', heading_size)
-            except Exception as e:
-                st.error(f"Schriftart konnte nicht geladen werden: {e}. Bitte überprüfe den Font-Pfad!")
-                st.stop()
-                
+            # Verwendung der Standard-Schriftart (Arial)
+            pdf.set_font("Arial", size=heading_size)
+
             for idx, img_file in enumerate(bilder_upload):
                 pdf.add_page()
                 img = Image.open(img_file)
@@ -145,14 +134,9 @@ if doc_type == "PDF (Text + Bilder)":
         if st.button("PDF generieren"):
             pdf = FPDF(orientation="P", unit="mm", format=(page_w, page_h))
             pdf.set_auto_page_break(auto=True, margin=10)
-            
-            # Schriftart hinzufügen und Fehlerüberprüfung
-            try:
-                pdf.add_font('Noto', '', font_path, uni=True)
-                pdf.set_font('Noto', '', text_size)
-            except Exception as e:
-                st.error(f"Schriftart konnte nicht geladen werden: {e}. Bitte überprüfe den Font-Pfad!")
-                st.stop()
+
+            # Verwendung der Standard-Schriftart (Arial)
+            pdf.set_font("Arial", size=text_size)
 
             logo_path = None
             if logo_file:
@@ -169,9 +153,9 @@ if doc_type == "PDF (Text + Bilder)":
                     paragraphs = [p.strip() for p in text.split("\n") if p.strip()]
                     for paragraph in paragraphs:
                         if paragraph.isupper() or re.match(r"^\d+\.|#|-", paragraph.strip()):
-                            pdf.set_font("Noto", style='B', size=heading_size)
+                            pdf.set_font("Arial", style='B', size=heading_size)
                         else:
-                            pdf.set_font("Noto", size=text_size)
+                            pdf.set_font("Arial", size=text_size)
                         pdf.multi_cell(0, 10, paragraph, align='C')
 
                 if layout == "Nur Bild" and img_file:
@@ -192,9 +176,9 @@ if doc_type == "PDF (Text + Bilder)":
                     paragraphs = [p.strip() for p in text.split("\n") if p.strip()]
                     for paragraph in paragraphs:
                         if paragraph.isupper() or re.match(r"^\d+\.|#|-", paragraph.strip()):
-                            pdf.set_font("Noto", style='B', size=heading_size)
+                            pdf.set_font("Arial", style='B', size=heading_size)
                         else:
-                            pdf.set_font("Noto", size=text_size)
+                            pdf.set_font("Arial", size=text_size)
                         pdf.multi_cell(0, 10, paragraph, align='C')
 
                 if impressum_text:
@@ -202,7 +186,7 @@ if doc_type == "PDF (Text + Bilder)":
                        (impressum_position == "Am Ende (letzte Seite)" and idx == seiten - 1) or \
                        (impressum_position == "Benutzerdefinierte Seite" and idx == benutzerdefiniert - 1):
                         pdf.ln(10)
-                        pdf.set_font("Noto", style='I', size=9)
+                        pdf.set_font("Arial", style='I', size=9)
                         pdf.multi_cell(0, 8, f"Impressum: {impressum_text}", align='C')
 
             pdf_file = "monti_dokument.pdf"
