@@ -1,8 +1,8 @@
 import os
-import streamlit as st
-from streamlit_quill import st_quill  # Quill-Editor importieren
 from fpdf import FPDF
+import streamlit as st
 from PIL import Image
+from streamlit_quill import st_quill
 
 # App-Titel
 st.set_page_config(page_title="Monti – Dein PDF-Generator", layout="wide")
@@ -16,7 +16,7 @@ st.markdown(
 )
 
 # Quill Textfeld für die PDF
-text_input = st_quill(label="Gib den Text für dein PDF ein", height=300)
+text_input = st_quill(placeholder="Gib den Text für dein PDF ein", height=300)
 
 # Auswahl, ob das Bild hinzugefügt werden soll
 add_image = st.checkbox("Bild auf der Seite hinzufügen", value=True)
