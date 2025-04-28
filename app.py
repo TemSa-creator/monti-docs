@@ -41,7 +41,7 @@ if text_input or image_upload:
         pdf = FPDF()
         pdf.set_auto_page_break(auto=True, margin=15)
         pdf.add_page()
-        pdf.set_font("Arial", size=12)  # Ohne encoding-Option
+        pdf.set_font("Arial", size=12)  # Keine Encoding-Option mehr
 
         # Text in die PDF einfügen
         if text_input:
@@ -64,7 +64,7 @@ if text_input or image_upload:
             os.remove(img_path)  # Temporäre Bilddatei löschen
 
         # PDF speichern
-        pdf.output(pdf_output, 'F')
+        pdf.output(pdf_output)
 
         # Download-Link für die generierte PDF bereitstellen
         with open(pdf_output, "rb") as f:
