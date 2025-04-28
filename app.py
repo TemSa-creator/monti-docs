@@ -42,8 +42,13 @@ if text_input or image_upload:
         pdf.set_auto_page_break(auto=True, margin=15)
         pdf.add_page()
 
-        # Setze eine Arial-Schriftart ohne Encoding-Parameter
-        pdf.set_font("Arial", size=12)
+        # Setze eine Schriftart, die Unicode unterstützt (z.B. DejaVuSans)
+        try:
+            pdf.add_font('DejaVu', '', 'DejaVuSans-Bold.ttf', uni=True)
+            pdf.set_font('DejaVu', size=12)
+        except Exception as e:
+            st.error(f"Fehler beim Laden der Schriftart: {str(e)}")
+            st.stop()
 
         # Text in die PDF einfügen
         if text_input:
