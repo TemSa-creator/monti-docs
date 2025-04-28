@@ -41,7 +41,9 @@ if text_input or image_upload:
         pdf = FPDF()
         pdf.set_auto_page_break(auto=True, margin=15)
         pdf.add_page()
-        pdf.set_font("Arial", size=12)  # Keine Encoding-Option mehr
+
+        # Setze eine Arial-Schriftart ohne Encoding-Parameter
+        pdf.set_font("Arial", size=12)
 
         # Text in die PDF einfügen
         if text_input:
