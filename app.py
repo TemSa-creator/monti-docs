@@ -25,8 +25,8 @@ image_upload = None
 if add_image:
     image_upload = st.file_uploader("Bild hochladen (optional)", type=["png", "jpg", "jpeg"])
 
-# Überprüfen, ob der Text eingegeben wurde oder ein Bild hochgeladen wurde
-if text_input or image_upload:
+# Überprüfen, ob der Text eingegeben wurde
+if text_input:
     # Button zum Erstellen der PDF
     if st.button("PDF erstellen"):
         # Verzeichnispfad für die Ausgabe-PDF
@@ -42,19 +42,19 @@ if text_input or image_upload:
         pdf.set_auto_page_break(auto=True, margin=15)
         pdf.add_page()
 
-        # Setze eine Schriftart, die Unicode unterstützt (z.B. DejaVuSans)
+        # Versuchen, die Schriftart hinzuzufügen
         try:
-            pdf.add_font('DejaVu', '', 'DejaVuSans-Bold.ttf', uni=True)
+            # DejaVu Sans oder Noto Sans als Schriftart laden
+            pdf.add_font('DejaVu', '', 'fonts/DejaVuSans.ttf', uni=True)
             pdf.set_font('DejaVu', size=12)
         except Exception as e:
             st.error(f"Fehler beim Laden der Schriftart: {str(e)}")
             st.stop()
 
         # Text in die PDF einfügen
-        if text_input:
-            paragraphs = [p.strip() for p in text_input.split("\n") if p.strip()]
-            for paragraph in paragraphs:
-                pdf.multi_cell(0, 10, paragraph, align="L")
+        paragraphs = [p.strip() for p in text_input.split("\n") if p.strip()]
+        for paragraph in paragraphs:
+            pdf.multi_cell(0, 10, paragraph, align="L")
 
         # Bild in die PDF einfügen, falls ein Bild hochgeladen wurde
         if add_image and image_upload:
@@ -62,7 +62,7 @@ if text_input or image_upload:
             img_path = "temp_img.png"
             img.save(img_path)
             
-            # Bildgröße anpassen (maximal 100mm Breite)
+            # Bildgröße anpassen (maximal 100mm breite)
             img_width = 100  # Maximale Breite des Bildes
             img_height = (img.height * img_width) / img.width  # Höhe proportional anpassen
             
@@ -71,7 +71,7 @@ if text_input or image_upload:
             os.remove(img_path)  # Temporäre Bilddatei löschen
 
         # PDF speichern
-        pdf.output(pdf_output)
+        pdf.output(pdf_output, 'F')
 
         # Download-Link für die generierte PDF bereitstellen
         with open(pdf_output, "rb") as f:
