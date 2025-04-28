@@ -1,7 +1,8 @@
 import os
-from fpdf import FPDF
 import streamlit as st
+from fpdf import FPDF
 from PIL import Image
+from streamlit_quill import st_quill
 
 # App-Titel
 st.set_page_config(page_title="Monti – Dein PDF-Generator", layout="wide")
@@ -14,8 +15,9 @@ st.markdown(
     "strukturiertes PDF erstellen."
 )
 
-# Textinput für die PDF
-text_input = st.text_area("Gib den Text für dein PDF ein", height=200)
+# Rich Text Editor (Quill)
+st.markdown("### Gib hier deinen Text ein und formatiere ihn nach Belieben")
+quill_text = st_quill(key="quill_editor")
 
 # Auswahl, ob das Bild hinzugefügt werden soll
 add_image = st.checkbox("Bild auf der Seite hinzufügen", value=True)
@@ -26,7 +28,7 @@ if add_image:
     image_upload = st.file_uploader("Bild hochladen (optional)", type=["png", "jpg", "jpeg"])
 
 # Überprüfen, ob der Text eingegeben wurde
-if text_input:
+if quill_text:
     # Button zum Erstellen der PDF
     if st.button("PDF erstellen"):
         # Verzeichnispfad für die Ausgabe-PDF
@@ -52,8 +54,16 @@ if text_input:
             st.stop()
 
         # Text in die PDF einfügen
-        paragraphs = [p.strip() for p in text_input.split("\n") if p.strip()]
+        paragraphs = [p.strip() for p in quill_text.split("\n") if p.strip()]
         for paragraph in paragraphs:
+            # Einfacher HTML-Parser (nur für grundlegende Tags wie <b>, <i> und <font>)
+            paragraph = paragraph.replace("<b>", "").replace("</b>", "")  # Fett
+            paragraph = paragraph.replace("<i>", "").replace("</i>", "")  # Kursiv
+            paragraph = paragraph.replace("<u>", "").replace("</u>", "")  # Unterstrichen
+
+            # Hier kannst du das Format noch erweitern
+
+            # Füge den Text hinzu, formatiere ihn entsprechend
             pdf.multi_cell(0, 10, paragraph, align="L")
 
         # Bild in die PDF einfügen, falls ein Bild hochgeladen wurde
