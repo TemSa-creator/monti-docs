@@ -53,9 +53,14 @@ if text_input:
             img = Image.open(image_upload)
             img_path = "temp_img.png"
             img.save(img_path)
-            pdf.add_page()  # Füge eine neue Seite hinzu, falls das Bild auf einer neuen Seite sein soll
-            pdf.image(img_path, x=10, y=20, w=180)  # Bild positionieren und Größe anpassen
-            os.remove(img_path)
+            
+            # Bildgröße anpassen (maximal 100mm breite)
+            img_width = 100  # Maximale Breite des Bildes
+            img_height = (img.height * img_width) / img.width  # Höhe proportional anpassen
+            
+            # Bild positionieren und Größe anpassen
+            pdf.image(img_path, x=10, y=pdf.get_y() + 5, w=img_width, h=img_height)
+            os.remove(img_path)  # Temporäre Bilddatei löschen
 
         # PDF speichern
         pdf.output(pdf_output, 'F')
