@@ -1,6 +1,6 @@
 import os
-import streamlit as st
 from fpdf import FPDF
+import streamlit as st
 from PIL import Image
 from streamlit_quill import st_quill
 
@@ -15,9 +15,8 @@ st.markdown(
     "strukturiertes PDF erstellen."
 )
 
-# Rich Text Editor (Quill)
-st.markdown("### Gib hier deinen Text ein und formatiere ihn nach Belieben")
-quill_text = st_quill(key="quill_editor")
+# Quill Editor für die Texteingabe
+text_input = st_quill(label="Gib den Text für dein PDF ein", height=300)
 
 # Auswahl, ob das Bild hinzugefügt werden soll
 add_image = st.checkbox("Bild auf der Seite hinzufügen", value=True)
@@ -28,7 +27,7 @@ if add_image:
     image_upload = st.file_uploader("Bild hochladen (optional)", type=["png", "jpg", "jpeg"])
 
 # Überprüfen, ob der Text eingegeben wurde
-if quill_text:
+if text_input:
     # Button zum Erstellen der PDF
     if st.button("PDF erstellen"):
         # Verzeichnispfad für die Ausgabe-PDF
@@ -43,27 +42,11 @@ if quill_text:
         pdf = FPDF()
         pdf.set_auto_page_break(auto=True, margin=15)
         pdf.add_page()
-
-        # Versuchen, die Schriftart hinzuzufügen
-        try:
-            # DejaVu Sans oder Noto Sans als Schriftart laden
-            pdf.add_font('DejaVu', '', 'fonts/DejaVuSans.ttf', uni=True)
-            pdf.set_font('DejaVu', size=12)
-        except Exception as e:
-            st.error(f"Fehler beim Laden der Schriftart: {str(e)}")
-            st.stop()
+        pdf.set_font("Arial", size=12)
 
         # Text in die PDF einfügen
-        paragraphs = [p.strip() for p in quill_text.split("\n") if p.strip()]
+        paragraphs = [p.strip() for p in text_input.split("\n") if p.strip()]
         for paragraph in paragraphs:
-            # Einfacher HTML-Parser (nur für grundlegende Tags wie <b>, <i> und <font>)
-            paragraph = paragraph.replace("<b>", "").replace("</b>", "")  # Fett
-            paragraph = paragraph.replace("<i>", "").replace("</i>", "")  # Kursiv
-            paragraph = paragraph.replace("<u>", "").replace("</u>", "")  # Unterstrichen
-
-            # Hier kannst du das Format noch erweitern
-
-            # Füge den Text hinzu, formatiere ihn entsprechend
             pdf.multi_cell(0, 10, paragraph, align="L")
 
         # Bild in die PDF einfügen, falls ein Bild hochgeladen wurde
