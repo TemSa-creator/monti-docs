@@ -25,8 +25,8 @@ image_upload = None
 if add_image:
     image_upload = st.file_uploader("Bild hochladen (optional)", type=["png", "jpg", "jpeg"])
 
-# Überprüfen, ob der Text eingegeben wurde
-if text_input:
+# Überprüfen, ob der Text eingegeben wurde oder ein Bild hochgeladen wurde
+if text_input or image_upload:
     # Button zum Erstellen der PDF
     if st.button("PDF erstellen"):
         # Verzeichnispfad für die Ausgabe-PDF
@@ -44,9 +44,10 @@ if text_input:
         pdf.set_font("Arial", size=12)
 
         # Text in die PDF einfügen
-        paragraphs = [p.strip() for p in text_input.split("\n") if p.strip()]
-        for paragraph in paragraphs:
-            pdf.multi_cell(0, 10, paragraph, align="L")
+        if text_input:
+            paragraphs = [p.strip() for p in text_input.split("\n") if p.strip()]
+            for paragraph in paragraphs:
+                pdf.multi_cell(0, 10, paragraph, align="L")
 
         # Bild in die PDF einfügen, falls ein Bild hochgeladen wurde
         if add_image and image_upload:
@@ -54,7 +55,7 @@ if text_input:
             img_path = "temp_img.png"
             img.save(img_path)
             
-            # Bildgröße anpassen (maximal 100mm breite)
+            # Bildgröße anpassen (maximal 100mm Breite)
             img_width = 100  # Maximale Breite des Bildes
             img_height = (img.height * img_width) / img.width  # Höhe proportional anpassen
             
