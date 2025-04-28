@@ -16,7 +16,7 @@ st.markdown(
 )
 
 # Quill Textfeld für die PDF
-text_input = st_quill(placeholder="Gib den Text für dein PDF ein", height=300)
+text_input = st_quill(placeholder="Gib den Text für dein PDF ein")
 
 # Auswahl, ob das Bild hinzugefügt werden soll
 add_image = st.checkbox("Bild auf der Seite hinzufügen", value=True)
