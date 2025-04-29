@@ -1,80 +1,36 @@
-import os
 from fpdf import FPDF
 import streamlit as st
-from PIL import Image
 from streamlit_quill import st_quill
 
-# App-Titel
-st.set_page_config(page_title="Monti – Dein PDF-Generator", layout="wide")
-
-# App-Überschrift
-st.title("Monti – Dein PDF-Generator")
-st.markdown(
-    "Willkommen bei **Monti**, deinem PDF-Dokumenten-Assistenten. "
-    "Du kannst hier Text hinzufügen, Bilder hochladen und daraus ein "
-    "strukturiertes PDF erstellen."
-)
-
 # Quill Textfeld für die PDF
-text_input = st_quill(placeholder="Gib den Text für dein PDF ein")
+text_input = st_quill(placeholder="Gib den Text für dein PDF ein", height=300)
 
 # Auswahl, ob das Bild hinzugefügt werden soll
 add_image = st.checkbox("Bild auf der Seite hinzufügen", value=True)
 
-# Bild hochladen, wenn die Option aktiviert ist
-image_upload = None
-if add_image:
-    image_upload = st.file_uploader("Bild hochladen (optional)", type=["png", "jpg", "jpeg"])
-
-# Überprüfen, ob der Text eingegeben wurde
+# PDF-Generierung
 if text_input:
-    # Button zum Erstellen der PDF
-    if st.button("PDF erstellen"):
-        # Verzeichnispfad für die Ausgabe-PDF
-        output_dir = "output_files"
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
+    pdf = FPDF()
+    pdf.add_page()
 
-        # Dateipfad für die PDF-Ausgabe
-        pdf_output = os.path.join(output_dir, "monti_dokument.pdf")
+    # Schriftart, die Sonderzeichen unterstützt
+    pdf.add_font('Arial', '', 'arial.ttf', uni=True)  # Stelle sicher, dass 'arial.ttf' im richtigen Verzeichnis ist
+    pdf.set_font('Arial', size=12)
 
-        # Erstellen der PDF mit FPDF
-        pdf = FPDF()
-        pdf.set_auto_page_break(auto=True, margin=15)
-        pdf.add_page()
-        pdf.set_font("Arial", size=12)
+    # Text aus Quill Editor
+    text = text_input['text']  # Quill gibt den Text als HTML zurück, daher 'text' verwenden
 
-        # Text in die PDF einfügen
-        paragraphs = [p.strip() for p in text_input.split("\n") if p.strip()]
-        
-        for paragraph in paragraphs:
-            # Hier wird UTF-8 kodiert, um Sonderzeichen zu handhaben
-            try:
-                # Verwenden von "latin1", um Sonderzeichen zu behandeln
-                pdf.multi_cell(0, 10, paragraph.encode('latin1', 'replace').decode('latin1'), align="L")
-            except UnicodeEncodeError:
-                st.error("Ein Fehler trat bei der Kodierung des Textes auf.")
-                break
+    # Text zum PDF hinzufügen
+    pdf.multi_cell(0, 10, text)
 
-        # Bild in die PDF einfügen, falls ein Bild hochgeladen wurde
-        if add_image and image_upload:
-            img = Image.open(image_upload)
-            img_path = "temp_img.png"
-            img.save(img_path)
-            
-            # Bildgröße anpassen (maximal 100mm breite)
-            img_width = 100  # Maximale Breite des Bildes
-            img_height = (img.height * img_width) / img.width  # Höhe proportional anpassen
-            
-            # Bild positionieren und Größe anpassen
-            pdf.image(img_path, x=10, y=pdf.get_y() + 5, w=img_width, h=img_height)
-            os.remove(img_path)  # Temporäre Bilddatei löschen
+    # Bild hinzufügen, falls ausgewählt
+    if add_image:
+        image_path = st.file_uploader("Lade ein Bild hoch", type=["jpg", "png"])
+        if image_path:
+            pdf.image(image_path, x=10, y=pdf.get_y(), w=100)
 
-        # PDF speichern
-        pdf.output(pdf_output, 'F')
+    # PDF speichern
+    pdf_output = "/mnt/data/generated_pdf.pdf"
+    pdf.output(pdf_output, 'F')
 
-        # Download-Link für die generierte PDF bereitstellen
-        with open(pdf_output, "rb") as f:
-            st.download_button("PDF herunterladen", f, file_name="monti_dokument.pdf")
-
-        st.success("PDF wurde erfolgreich erstellt!")
+    st.download_button("Download PDF", pdf_output)
