@@ -48,7 +48,11 @@ if text_input:
         paragraphs = [p.strip() for p in text_input.split("\n") if p.strip()]
         for paragraph in paragraphs:
             # Hier wird UTF-8 kodiert, um Sonderzeichen zu handhaben
-            pdf.multi_cell(0, 10, paragraph.encode('latin1', 'replace').decode('latin1'), align="L")
+            try:
+                pdf.multi_cell(0, 10, paragraph.encode('latin1', 'replace').decode('latin1'), align="L")
+            except UnicodeEncodeError:
+                st.error("Ein Fehler trat bei der Kodierung des Textes auf.")
+                break
 
         # Bild in die PDF einfügen, falls ein Bild hochgeladen wurde
         if add_image and image_upload:
