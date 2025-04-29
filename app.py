@@ -16,7 +16,7 @@ st.markdown(
 )
 
 # Quill Textfeld für die PDF
-text_input = st_quill(placeholder="Gib den Text für dein PDF ein")
+text_input = st_quill(placeholder="Gib den Text für dein PDF ein", height=300)
 
 # Auswahl, ob das Bild hinzugefügt werden soll
 add_image = st.checkbox("Bild auf der Seite hinzufügen", value=True)
@@ -47,7 +47,8 @@ if text_input:
         # Text in die PDF einfügen
         paragraphs = [p.strip() for p in text_input.split("\n") if p.strip()]
         for paragraph in paragraphs:
-            pdf.multi_cell(0, 10, paragraph, align="L")
+            # Hier wird UTF-8 kodiert, um Sonderzeichen zu handhaben
+            pdf.multi_cell(0, 10, paragraph.encode('latin1', 'replace').decode('latin1'), align="L")
 
         # Bild in die PDF einfügen, falls ein Bild hochgeladen wurde
         if add_image and image_upload:
