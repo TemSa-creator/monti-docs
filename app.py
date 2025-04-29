@@ -46,9 +46,11 @@ if text_input:
 
         # Text in die PDF einfügen
         paragraphs = [p.strip() for p in text_input.split("\n") if p.strip()]
+        
         for paragraph in paragraphs:
             # Hier wird UTF-8 kodiert, um Sonderzeichen zu handhaben
             try:
+                # Verwenden von "latin1", um Sonderzeichen zu behandeln
                 pdf.multi_cell(0, 10, paragraph.encode('latin1', 'replace').decode('latin1'), align="L")
             except UnicodeEncodeError:
                 st.error("Ein Fehler trat bei der Kodierung des Textes auf.")
