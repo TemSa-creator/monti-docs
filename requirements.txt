@@ -2,4 +2,3 @@ streamlit
 fpdf
 pillow
 pdf2image
-st.text_area()
