@@ -29,12 +29,12 @@ if text_input:
 
     try:
         # Falls die Schriftart lokal vorhanden ist, stelle sicher, dass der Pfad korrekt ist
-        pdf.add_font('DejaVu', '', 'DejaVuSans.ttf', uni=True)  # Stelle sicher, dass die Schriftart lokal verfügbar ist
+        pdf.add_font('DejaVu', '', 'DejaVuSans.ttf', uni=True)  # Falls verfügbar
     except RuntimeError:
         # Wenn der Fehler auftritt, versuche eine Standard-Schriftart zu verwenden
         pdf.set_font('Arial', '', 12)  # Arial als Fallback
 
-    pdf.set_font('DejaVu', '', 12)
+    pdf.set_font('Arial', '', 12)  # Sicherstellen, dass Arial verwendet wird
 
     # Text aus Quill Editor verarbeiten
     raw_text = text_input['text']
