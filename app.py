@@ -12,8 +12,12 @@ def process_text(text):
     text = text.replace('<i>', '').replace('</i>', '_')  # Kursiv wird durch _ ersetzt
     return text
 
+# Layout für die App
+st.title("Monti – Dein PDF-Generator")
+st.write("Willkommen bei Monti, deinem PDF-Dokumenten-Assistenten. Du kannst hier Text hinzufügen, Bilder hochladen und daraus ein strukturiertes PDF erstellen.")
+
 # Quill Textfeld für die PDF
-text_input = st_quill(placeholder="Gib den Text für dein PDF ein")  # Ohne height-Parameter
+text_input = st_quill(placeholder="Gib den Text für dein PDF ein")
 
 # Auswahl, ob das Bild hinzugefügt werden soll
 add_image = st.checkbox("Bild auf der Seite hinzufügen", value=True)
