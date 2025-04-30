@@ -27,17 +27,11 @@ if text_input:
     pdf = FPDF()
     pdf.add_page()
 
-    try:
-        # Falls die Schriftart lokal vorhanden ist, stelle sicher, dass der Pfad korrekt ist
-        pdf.add_font('DejaVu', '', 'DejaVuSans.ttf', uni=True)  # Falls verfügbar
-    except RuntimeError:
-        # Wenn der Fehler auftritt, versuche eine Standard-Schriftart zu verwenden
-        pdf.set_font('Arial', '', 12)  # Arial als Fallback
-
-    pdf.set_font('Arial', '', 12)  # Sicherstellen, dass Arial verwendet wird
+    # Arial als Fallback-Schriftart
+    pdf.set_font('Arial', '', 12)
 
     # Text aus Quill Editor verarbeiten
-    raw_text = text_input['text']
+    raw_text = text_input
     processed_text = process_text(raw_text)
 
     # Text zum PDF hinzufügen
