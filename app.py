@@ -1,53 +1,48 @@
-import re
+import io
 from fpdf import FPDF
 import streamlit as st
 from streamlit_quill import st_quill
 
-# Funktion, um HTML-Tags zu entfernen und Textformatierungen zu verarbeiten
-def process_text(text):
-    # Entfernen von HTML-Tags
-    text = re.sub(r'<.*?>', '', text)
-    # Ersetzen von HTML für fett und kursiv mit passenden FPDF-Steuerzeichen
-    text = text.replace('<b>', '').replace('</b>', '*')  # Fett wird durch * ersetzt
-    text = text.replace('<i>', '').replace('</i>', '_')  # Kursiv wird durch _ ersetzt
-    return text
-
-# Layout für die App
-st.title("Monti – Dein PDF-Generator")
-st.write("Willkommen bei Monti, deinem PDF-Dokumenten-Assistenten. Du kannst hier Text hinzufügen, Bilder hochladen und daraus ein strukturiertes PDF erstellen.")
-
-# Quill Textfeld für die PDF
-text_input = st_quill(placeholder="Gib den Text für dein PDF ein")
-
-# Auswahl, ob das Bild hinzugefügt werden soll
-add_image = st.checkbox("Bild auf der Seite hinzufügen", value=True)
-
-# PDF-Generierung
-if text_input:
+# Funktion zur Erstellung der PDF
+def create_pdf(text):
     pdf = FPDF()
     pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    pdf.multi_cell(0, 10, text)
+    return pdf
 
-    # Arial als Fallback-Schriftart
-    pdf.set_font('Arial', '', 12)
+# Layout der Streamlit-App
+st.title("Monti - Dein PDF-Generator")
 
-    # Text aus Quill Editor verarbeiten
-    raw_text = text_input
-    processed_text = process_text(raw_text)
+# Quill Editor für die Texterstellung
+text_input = st_quill(placeholder="Gib den Text für dein PDF ein", height=300)
 
-    # Text zum PDF hinzufügen
-    pdf.multi_cell(0, 10, processed_text)
+# Checkbox für das Hinzufügen eines Bildes
+add_image = st.checkbox("Bild auf der Seite hinzufügen")
 
-    # Bild hinzufügen, falls ausgewählt
+# PDF-Erstellung und Download
+if st.button("PDF erstellen"):
+    # Den Text aus dem Quill Editor holen
+    raw_text = text_input['text']  # Der Quill Editor gibt ein Dictionary zurück
+    
+    # PDF erstellen
+    pdf = create_pdf(raw_text)
+    
+    # Wenn ein Bild hinzugefügt werden soll, dann ein Bild im PDF einfügen
     if add_image:
-        image_path = st.file_uploader("Lade ein Bild hoch", type=["jpg", "png"])
-        if image_path:
-            pdf.image(image_path, x=10, y=pdf.get_y(), w=100)
-
-    # Sicherstellen, dass der PDF-Ausgabe-Pfad korrekt ist
-    pdf_output = "/mnt/data/generated_pdf.pdf"  # Direkt im /mnt/data Ordner von Streamlit
-
-    # Speichern des PDFs im richtigen Modus
-    pdf.output(pdf_output, 'F')
-
-    # Download-Button für das PDF
-    st.download_button("Download PDF", pdf_output)
+        # Hier wird ein Beispielbild hinzugefügt. Achte darauf, dass der Pfad korrekt ist.
+        # Du kannst auch den Upload von Bildern integrieren, falls du ein Bild vom Benutzer erhalten möchtest
+        pdf.image("dein_bild.jpg", x = 10, y = 50, w = 100)  # Beispielbild-URL
+    
+    # PDF in BytesIO speichern (anstatt auf der Festplatte)
+    pdf_output = io.BytesIO()
+    pdf.output(pdf_output)
+    pdf_output.seek(0)  # Den Cursor zurück auf den Anfang setzen
+    
+    # PDF zum Download anbieten
+    st.download_button(
+        label="PDF herunterladen",
+        data=pdf_output,
+        file_name="dein_pdf.pdf",
+        mime="application/pdf"
+    )
