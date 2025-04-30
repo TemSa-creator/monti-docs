@@ -1,6 +1,16 @@
+import re
 from fpdf import FPDF
 import streamlit as st
 from streamlit_quill import st_quill
+
+# Funktion, um HTML-Tags zu entfernen und Textformatierungen zu verarbeiten
+def process_text(text):
+    # Entfernen von HTML-Tags
+    text = re.sub(r'<.*?>', '', text)
+    # Ersetzen von HTML für fett und kursiv mit passenden FPDF-Steuerzeichen
+    text = text.replace('<b>', '').replace('</b>', '*')  # Fett wird durch * ersetzt
+    text = text.replace('<i>', '').replace('</i>', '_')  # Kursiv wird durch _ ersetzt
+    return text
 
 # Quill Textfeld für die PDF
 text_input = st_quill(placeholder="Gib den Text für dein PDF ein", height=300)
@@ -14,14 +24,15 @@ if text_input:
     pdf.add_page()
 
     # Schriftart, die Sonderzeichen unterstützt
-    pdf.add_font('Arial', '', 'arial.ttf', uni=True)  # Stelle sicher, dass 'arial.ttf' im richtigen Verzeichnis ist
-    pdf.set_font('Arial', size=12)
+    pdf.add_font('DejaVu', '', 'DejaVuSans.ttf', uni=True)  # Stelle sicher, dass die Schriftart lokal verfügbar ist
+    pdf.set_font('DejaVu', '', 12)
 
-    # Text aus Quill Editor
-    text = text_input['text']  # Quill gibt den Text als HTML zurück, daher 'text' verwenden
+    # Text aus Quill Editor verarbeiten
+    raw_text = text_input['text']
+    processed_text = process_text(raw_text)
 
     # Text zum PDF hinzufügen
-    pdf.multi_cell(0, 10, text)
+    pdf.multi_cell(0, 10, processed_text)
 
     # Bild hinzufügen, falls ausgewählt
     if add_image:
