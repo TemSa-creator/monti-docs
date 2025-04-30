@@ -1,7 +1,6 @@
 import io
 from fpdf import FPDF
 import streamlit as st
-from streamlit_quill import st_quill
 
 # Funktion zur Erstellung der PDF mit Text und Bild
 def create_pdf(text, image_path=None):
@@ -23,8 +22,8 @@ def create_pdf(text, image_path=None):
 # Layout der Streamlit-App
 st.title("Monti - Dein PDF-Generator")
 
-# Quill Editor für die Texterstellung
-text_input = st_quill(placeholder="Gib den Text für dein PDF ein", height=300)
+# Text Area für die Texterstellung
+text_input = st.text_area("Gib den Text für dein PDF ein", height=300)
 
 # Checkbox für das Hinzufügen eines Bildes
 add_image = st.checkbox("Bild auf der Seite hinzufügen")
@@ -36,9 +35,9 @@ if add_image:
 
 # PDF-Erstellung und Download
 if st.button("PDF erstellen"):
-    # Den Text aus dem Quill Editor holen
+    # Den Text aus dem Textfeld holen
     if text_input:
-        raw_text = text_input['text']  # Der Quill Editor gibt ein Dictionary zurück
+        raw_text = text_input  # Der Text aus dem Textfeld
 
         # PDF erstellen
         pdf = create_pdf(raw_text, image)
