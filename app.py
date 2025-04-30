@@ -27,8 +27,13 @@ if text_input:
     pdf = FPDF()
     pdf.add_page()
 
-    # Schriftart, die Sonderzeichen unterstützt
-    pdf.add_font('DejaVu', '', 'DejaVuSans.ttf', uni=True)  # Stelle sicher, dass die Schriftart lokal verfügbar ist
+    try:
+        # Falls die Schriftart lokal vorhanden ist, stelle sicher, dass der Pfad korrekt ist
+        pdf.add_font('DejaVu', '', 'DejaVuSans.ttf', uni=True)  # Stelle sicher, dass die Schriftart lokal verfügbar ist
+    except RuntimeError:
+        # Wenn der Fehler auftritt, versuche eine Standard-Schriftart zu verwenden
+        pdf.set_font('Arial', '', 12)  # Arial als Fallback
+
     pdf.set_font('DejaVu', '', 12)
 
     # Text aus Quill Editor verarbeiten
