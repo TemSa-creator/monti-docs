@@ -44,7 +44,7 @@ if text_input:
             pdf.image(image_path, x=10, y=pdf.get_y(), w=100)
 
     # Sicherstellen, dass der PDF-Ausgabe-Pfad korrekt ist
-    pdf_output = "/mnt/data/generated_pdf.pdf"
+    pdf_output = "/mnt/data/generated_pdf.pdf"  # Direkt im /mnt/data Ordner von Streamlit
 
     # Speichern des PDFs im richtigen Modus
     pdf.output(pdf_output, 'F')
