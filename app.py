@@ -43,8 +43,11 @@ if text_input:
         if image_path:
             pdf.image(image_path, x=10, y=pdf.get_y(), w=100)
 
-    # PDF speichern
+    # Sicherstellen, dass der PDF-Ausgabe-Pfad korrekt ist
     pdf_output = "/mnt/data/generated_pdf.pdf"
+
+    # Speichern des PDFs im richtigen Modus
     pdf.output(pdf_output, 'F')
 
+    # Download-Button für das PDF
     st.download_button("Download PDF", pdf_output)
