@@ -2,3 +2,4 @@ streamlit
 fpdf
 pillow
 pdf2image
+streamlit-quill==0.0.5
