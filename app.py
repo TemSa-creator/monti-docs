@@ -18,12 +18,22 @@ option = st.selectbox("Was möchtest du erstellen?", [
     "Präsentation",
 ])
 
+# Benutzerdefinierte Stiloptionen
+font_size = st.slider("Schriftgröße", 8, 24, 12)
+line_spacing = st.slider("Zeilenabstand", 10, 30, 16)
+alignment = st.selectbox("Ausrichtung", ["Links", "Zentriert", "Rechts"])
+font_choice = st.selectbox("Schriftart", ["Helvetica", "Times-Roman", "Courier"])
+
+align_map = {"Links": 0, "Zentriert": 1, "Rechts": 2}
+
 styles = getSampleStyleSheet()
 custom_style = ParagraphStyle(
     name='Custom',
     parent=styles['Normal'],
-    fontSize=12,
-    leading=16
+    fontName=font_choice,
+    fontSize=font_size,
+    leading=line_spacing,
+    alignment=align_map[alignment]
 )
 
 def generate_ebook(text, images):
@@ -34,7 +44,7 @@ def generate_ebook(text, images):
     for line in text.split("\n"):
         if line.strip().startswith("#"):
             elements.append(Spacer(1, 12))
-            elements.append(Paragraph(f"<b>{line.strip('# ').strip()}</b>", styles['Heading2']))
+            elements.append(Paragraph(f"<b>{line.strip('# ').strip()}</b>", ParagraphStyle(name='Heading2', fontSize=font_size+4, leading=line_spacing+2, fontName=font_choice)))
         else:
             elements.append(Paragraph(line.strip(), custom_style))
             elements.append(Spacer(1, 6))
@@ -53,7 +63,7 @@ def generate_invoice():
     doc = SimpleDocTemplate(buffer, pagesize=A4)
     elements = []
 
-    elements.append(Paragraph("<b>Rechnung</b>", styles['Title']))
+    elements.append(Paragraph("<b>Rechnung</b>", ParagraphStyle(name='Title', fontSize=font_size+4, leading=line_spacing+2, fontName=font_choice)))
     elements.append(Spacer(1, 12))
 
     data = [
@@ -68,7 +78,7 @@ def generate_invoice():
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
         ('ALIGN', (1, 1), (-1, -1), 'CENTER'),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold')
+        ('FONTNAME', (0, 0), (-1, 0), font_choice)
     ]))
     elements.append(table)
 
