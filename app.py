@@ -18,13 +18,32 @@ option = st.selectbox("Was möchtest du erstellen?", [
     "Präsentation",
 ])
 
-# Benutzerdefinierte Stiloptionen
+# Stiloptionen
 font_size = st.slider("Schriftgröße", 8, 24, 12)
 line_spacing = st.slider("Zeilenabstand", 10, 30, 16)
 alignment = st.selectbox("Ausrichtung", ["Links", "Zentriert", "Rechts"])
 font_choice = st.selectbox("Schriftart", ["Helvetica", "Times-Roman", "Courier"])
+design_choice = st.selectbox("Design-Vorlage", ["Business", "Kreativ", "Minimalistisch"])
+
+# Optionales Logo hochladen
+logo_file = st.file_uploader("Firmenlogo hochladen (optional)", type=["jpg", "jpeg", "png"])
 
 align_map = {"Links": 0, "Zentriert": 1, "Rechts": 2}
+
+# Designvorlagen definieren
+color_map = {
+    "Business": colors.HexColor("#2E4053"),
+    "Kreativ": colors.HexColor("#8E44AD"),
+    "Minimalistisch": colors.black
+}
+title_style = ParagraphStyle(
+    name='TitleStyle',
+    fontName=font_choice,
+    fontSize=font_size + 4,
+    leading=line_spacing + 2,
+    alignment=align_map[alignment],
+    textColor=color_map[design_choice]
+)
 
 styles = getSampleStyleSheet()
 custom_style = ParagraphStyle(
@@ -44,7 +63,7 @@ def generate_ebook(text, images):
     for line in text.split("\n"):
         if line.strip().startswith("#"):
             elements.append(Spacer(1, 12))
-            elements.append(Paragraph(f"<b>{line.strip('# ').strip()}</b>", ParagraphStyle(name='Heading2', fontSize=font_size+4, leading=line_spacing+2, fontName=font_choice)))
+            elements.append(Paragraph(line.strip('# ').strip(), title_style))
         else:
             elements.append(Paragraph(line.strip(), custom_style))
             elements.append(Spacer(1, 6))
@@ -63,7 +82,11 @@ def generate_invoice():
     doc = SimpleDocTemplate(buffer, pagesize=A4)
     elements = []
 
-    elements.append(Paragraph("<b>Rechnung</b>", ParagraphStyle(name='Title', fontSize=font_size+4, leading=line_spacing+2, fontName=font_choice)))
+    if logo_file:
+        elements.append(Image(logo_file, width=4*cm, height=2*cm))
+        elements.append(Spacer(1, 8))
+
+    elements.append(Paragraph("Rechnung", title_style))
     elements.append(Spacer(1, 12))
 
     data = [
@@ -74,7 +97,7 @@ def generate_invoice():
     ]
     table = Table(data, colWidths=[8*cm, 3*cm, 3*cm, 3*cm])
     table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.pink),
+        ('BACKGROUND', (0, 0), (-1, 0), color_map[design_choice]),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
         ('ALIGN', (1, 1), (-1, -1), 'CENTER'),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
