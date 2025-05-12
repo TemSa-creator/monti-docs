@@ -1,58 +1,97 @@
-import io
-from fpdf import FPDF
 import streamlit as st
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.lib.units import cm
+import io
 
-# Funktion zur Erstellung der PDF mit Text und Bild
-def create_pdf(text, image_path=None):
-    pdf = FPDF()
-    pdf.add_page()
+st.set_page_config(page_title="Monti - Dokumenten-Bot", layout="centered")
+st.title("📄 Monti – Dein intelligenter PDF-Generator")
 
-    # Setze die Schriftart
-    pdf.set_font("Arial", size=12)
+# Auswahl des Dokumententyps
+option = st.selectbox("Was möchtest du erstellen?", [
+    "E-Book",
+    "Rechnung",
+    "Brief",
+    "Urkunde",
+    "Präsentation",
+])
 
-    # Füge den Text ein
-    pdf.multi_cell(0, 10, text)
+styles = getSampleStyleSheet()
+custom_style = ParagraphStyle(
+    name='Custom',
+    parent=styles['Normal'],
+    fontSize=12,
+    leading=16
+)
 
-    # Füge das Bild ein, falls vorhanden
-    if image_path:
-        pdf.image(image_path, x=10, y=50, w=100)  # Bild einfügen an der Position (10, 50) mit Breite 100mm
+def generate_ebook(text, images):
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    elements = []
 
-    return pdf
+    for line in text.split("\n"):
+        if line.strip().startswith("#"):
+            elements.append(Spacer(1, 12))
+            elements.append(Paragraph(f"<b>{line.strip('# ').strip()}</b>", styles['Heading2']))
+        else:
+            elements.append(Paragraph(line.strip(), custom_style))
+            elements.append(Spacer(1, 6))
 
-# Layout der Streamlit-App
-st.title("Monti - Dein PDF-Generator")
+    if images:
+        for img in images:
+            elements.append(Spacer(1, 12))
+            elements.append(Image(img, width=12*cm, height=8*cm))
 
-# Text Area für die Texterstellung
-text_input = st.text_area("Gib den Text für dein PDF ein", height=300)
+    doc.build(elements)
+    buffer.seek(0)
+    return buffer
 
-# Checkbox für das Hinzufügen eines Bildes
-add_image = st.checkbox("Bild auf der Seite hinzufügen")
+def generate_invoice():
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    elements = []
 
-# Bild hochladen (nur wenn die Checkbox aktiviert ist)
-image = None
-if add_image:
-    image = st.file_uploader("Lade ein Bild hoch", type=["jpg", "png", "jpeg"])
+    elements.append(Paragraph("<b>Rechnung</b>", styles['Title']))
+    elements.append(Spacer(1, 12))
 
-# PDF-Erstellung und Download
-if st.button("PDF erstellen"):
-    # Den Text aus dem Textfeld holen
-    if text_input:
-        raw_text = text_input  # Der Text aus dem Textfeld
+    data = [
+        ["Beschreibung", "Menge", "Einzelpreis", "Gesamt"],
+        ["Produkt A", "2", "100 €", "200 €"],
+        ["Produkt B", "1", "150 €", "150 €"],
+        ["", "", "<b>Gesamt</b>", "<b>350 €</b>"]
+    ]
+    table = Table(data, colWidths=[8*cm, 3*cm, 3*cm, 3*cm])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.pink),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (1, 1), (-1, -1), 'CENTER'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold')
+    ]))
+    elements.append(table)
 
-        # PDF erstellen
-        pdf = create_pdf(raw_text, image)
+    doc.build(elements)
+    buffer.seek(0)
+    return buffer
 
-        # PDF in BytesIO speichern (anstatt auf der Festplatte)
-        pdf_output = io.BytesIO()
-        pdf.output(pdf_output)
-        pdf_output.seek(0)  # Den Cursor zurück auf den Anfang setzen
+text_input = st.text_area("Dein Text (mit # für Kapitelüberschriften)", height=300)
+image_files = []
+if option == "E-Book":
+    image_files = st.file_uploader("Bilder hochladen (optional)", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
 
-        # PDF zum Download anbieten
-        st.download_button(
-            label="PDF herunterladen",
-            data=pdf_output,
-            file_name="dein_pdf.pdf",
-            mime="application/pdf"
-        )
+if st.button("📥 PDF erstellen"):
+    if option == "E-Book":
+        if not text_input:
+            st.warning("Bitte Text eingeben.")
+        else:
+            pdf_buffer = generate_ebook(text_input, image_files)
+            st.download_button("📘 E-Book herunterladen", data=pdf_buffer, file_name="ebook.pdf", mime="application/pdf")
+
+    elif option == "Rechnung":
+        pdf_buffer = generate_invoice()
+        st.download_button("🧾 Rechnung herunterladen", data=pdf_buffer, file_name="rechnung.pdf", mime="application/pdf")
+
     else:
-        st.error("Bitte gib Text ein, um das PDF zu erstellen!")
+        st.info("Dieses Dokumentenformat wird bald unterstützt.")
