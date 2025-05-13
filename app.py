@@ -81,22 +81,22 @@ with col2:
         alignment=align_map[alignment]
     )
 
-    def generate_ebook(text, image_chapters):
+    def generate_ebook(text, chapter_image_map):
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=A4)
         elements = []
 
-        for line in text.split("\n"):
+        lines = text.split("\n")
+        current_chapter = None
+
+        for line in lines:
             if line.strip().startswith("#"):
-                chapter_title = line.strip('# ').strip()
+                current_chapter = line.strip('# ').strip()
                 elements.append(Spacer(1, 12))
-                elements.append(Paragraph(chapter_title, title_style))
-                elements.append(Spacer(1, 6))
-                # Bild einfügen, wenn Kapitelname übereinstimmt
-                for img, chap in image_chapters:
-                    if chap.lower() in chapter_title.lower():
-                        elements.append(RLImage(img, width=12*cm, height=8*cm))
-                        elements.append(Spacer(1, 6))
+                elements.append(Paragraph(current_chapter, title_style))
+                if current_chapter in chapter_image_map:
+                    elements.append(Spacer(1, 12))
+                    elements.append(RLImage(chapter_image_map[current_chapter], width=10*cm, height=6*cm))
             else:
                 elements.append(Paragraph(line.strip(), custom_style))
                 elements.append(Spacer(1, 6))
@@ -138,20 +138,22 @@ with col2:
         return buffer
 
     text_input = st.text_area("Dein Text (mit # für Kapitelüberschriften)", height=300)
-    image_chapters = []
+    chapter_image_map = {}
+
     if option == "E-Book":
-        image_files = st.file_uploader("Bilder hochladen (optional)", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
-        for idx, img in enumerate(image_files):
-            chapter = st.text_input(f"Zu welchem Kapitel gehört dieses Bild? ({img.name})", key=f"kapitel_{idx}")
-            if chapter:
-                image_chapters.append((img, chapter))
+        image_files = st.file_uploader("Bilder hochladen", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
+        if image_files:
+            for i, img in enumerate(image_files):
+                chapter = st.text_input(f"Zu welchem Kapitel gehört dieses Bild? ({img.name})", key=f"chapter_input_{i}")
+                if chapter:
+                    chapter_image_map[chapter] = img
 
     if st.button("📥 PDF erstellen"):
         if option == "E-Book":
             if not text_input:
                 st.warning("Bitte Text eingeben.")
             else:
-                pdf_buffer = generate_ebook(text_input, image_chapters)
+                pdf_buffer = generate_ebook(text_input, chapter_image_map)
                 st.download_button("📘 E-Book herunterladen", data=pdf_buffer, file_name="ebook.pdf", mime="application/pdf")
 
                 with st.expander("📄 Vorschau anzeigen"):
