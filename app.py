@@ -95,7 +95,10 @@ with col2:
                 elements.append(Paragraph(current_chapter, title_style))
                 if current_chapter in chapter_image_map:
                     elements.append(Spacer(1, 12))
-                    elements.append(RLImage(chapter_image_map[current_chapter], width=10*cm, height=6*cm))
+                    img = chapter_image_map[current_chapter]
+                    image_bytes = io.BytesIO(img.read())
+                    img.seek(0)
+                    elements.append(RLImage(image_bytes, width=10*cm, height=6*cm))
             else:
                 elements.append(Paragraph(line.strip(), custom_style))
                 elements.append(Spacer(1, 6))
@@ -110,7 +113,9 @@ with col2:
         elements = []
 
         if logo:
-            elements.append(RLImage(logo, width=4*cm, height=2*cm))
+            image_bytes = io.BytesIO(logo.read())
+            logo.seek(0)
+            elements.append(RLImage(image_bytes, width=4*cm, height=2*cm))
 
         elements.append(Spacer(1, 12))
         elements.append(Paragraph("Rechnung", title_style))
