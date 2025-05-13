@@ -4,12 +4,18 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.units import cm
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 import io
-import re
+import os
+
+# DejaVuSans Schrift für Emoji-Unterstützung registrieren
+pdfmetrics.registerFont(TTFont("DejaVuSans", "DejaVuSans.ttf"))
 
 st.set_page_config(page_title="Monti - Dokumenten-Bot", layout="centered")
 st.title("📄 Monti – Dein intelligenter PDF-Generator")
 
+# Auswahl des Dokumententyps
 option = st.selectbox("Was möchtest du erstellen?", [
     "E-Book",
     "Rechnung",
@@ -18,16 +24,19 @@ option = st.selectbox("Was möchtest du erstellen?", [
     "Präsentation",
 ])
 
-font_size = st.slider("Standardschriftgröße", 8, 24, 12)
+# Stiloptionen
+font_size = st.slider("Schriftgröße", 8, 24, 12)
 line_spacing = st.slider("Zeilenabstand", 10, 30, 16)
 alignment = st.selectbox("Ausrichtung", ["Links", "Zentriert", "Rechts"])
-font_choice = st.selectbox("Schriftart", ["Helvetica", "Times-Roman", "Courier"])
+font_choice = st.selectbox("Schriftart", ["DejaVuSans", "Helvetica", "Times-Roman", "Courier"])
 design_choice = st.selectbox("Design-Vorlage", ["Business", "Kreativ", "Minimalistisch"])
 
+# Optionales Logo hochladen
 logo_file = st.file_uploader("Firmenlogo hochladen (optional)", type=["jpg", "jpeg", "png"])
 
 align_map = {"Links": 0, "Zentriert": 1, "Rechts": 2}
 
+# Designfarben
 color_map = {
     "Business": colors.HexColor("#2E4053"),
     "Kreativ": colors.HexColor("#8E44AD"),
@@ -37,11 +46,10 @@ color_map = {
 title_style = ParagraphStyle(
     name='TitleStyle',
     fontName=font_choice,
-    fontSize=font_size + 6,
+    fontSize=font_size + 4,
     leading=line_spacing + 2,
     alignment=align_map[alignment],
-    textColor=color_map[design_choice],
-    spaceAfter=10
+    textColor=color_map[design_choice]
 )
 
 styles = getSampleStyleSheet()
@@ -54,26 +62,17 @@ custom_style = ParagraphStyle(
     alignment=align_map[alignment]
 )
 
-def markdown_to_html(text):
-    text = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', text)
-    text = re.sub(r'\*(.*?)\*', r'<i>\1</i>', text)
-    text = re.sub(r'__(.*?)__', r'<u>\1</u>', text)
-    return text
-
 def generate_ebook(text, images):
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4)
     elements = []
 
     for line in text.split("\n"):
-        if line.strip().startswith("###"):
-            elements.append(Paragraph(markdown_to_html(line.strip("# ")), ParagraphStyle("H3", fontSize=font_size+2, fontName=font_choice, alignment=align_map[alignment], textColor=color_map[design_choice])))
-        elif line.strip().startswith("##"):
-            elements.append(Paragraph(markdown_to_html(line.strip("# ")), ParagraphStyle("H2", fontSize=font_size+4, fontName=font_choice, alignment=align_map[alignment], textColor=color_map[design_choice])))
-        elif line.strip().startswith("#"):
-            elements.append(Paragraph(markdown_to_html(line.strip("# ")), title_style))
+        if line.strip().startswith("#"):
+            elements.append(Spacer(1, 12))
+            elements.append(Paragraph(f"<b>{line.strip('# ').strip()}</b>", title_style))
         else:
-            elements.append(Paragraph(markdown_to_html(line), custom_style))
+            elements.append(Paragraph(line.strip(), custom_style))
             elements.append(Spacer(1, 6))
 
     if images:
@@ -117,7 +116,7 @@ def generate_invoice():
     buffer.seek(0)
     return buffer
 
-text_input = st.text_area("Dein Text (Markdown: # Titel, **fett**, *kursiv*, __unterstrichen__)", height=300)
+text_input = st.text_area("Dein Text (nutze # für Überschriften, Emojis erlaubt!)", height=300)
 image_files = []
 if option == "E-Book":
     image_files = st.file_uploader("Bilder hochladen (optional)", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
