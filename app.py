@@ -4,19 +4,33 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.units import cm
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 import io
-import os
+import base64
 
-st.set_page_config(page_title="Monti - Dokumenten-Bot", layout="centered")
-st.title("📄 Monti – Dein intelligenter PDF-Generator")
+st.set_page_config(page_title="Monti - Dokumenten-Bot", layout="wide")
+st.markdown("""
+    <style>
+    body {
+        background: linear-gradient(to right, #f5f5f5, #ffffff);
+    }
+    .block-container {
+        padding: 2rem 2rem;
+    }
+    .stTextArea > div > textarea {
+        background-color: white;
+        color: black;
+        border: 1px solid black;
+    }
+    .stTextInput > div > input {
+        background-color: white;
+        color: black;
+        border: 1px solid black;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-# Register DejaVuSans with emoji support
-font_path = os.path.join("fonts", "DejaVuSans.ttf")
-pdfmetrics.registerFont(TTFont("DejaVuSans", font_path))
+st.markdown("<h1 style='text-align: center; color: gold;'>Monti – Dein intelligenter PDF-Generator</h1>", unsafe_allow_html=True)
 
-# Auswahl des Dokumententyps
 option = st.selectbox("Was möchtest du erstellen?", [
     "E-Book",
     "Rechnung",
@@ -25,26 +39,25 @@ option = st.selectbox("Was möchtest du erstellen?", [
     "Präsentation",
 ])
 
-# Stiloptionen
 font_size = st.slider("Schriftgröße", 8, 24, 12)
 line_spacing = st.slider("Zeilenabstand", 10, 30, 16)
 alignment = st.selectbox("Ausrichtung", ["Links", "Zentriert", "Rechts"])
+font_choice = st.selectbox("Schriftart", ["Helvetica", "Times-Roman", "Courier"])
 design_choice = st.selectbox("Design-Vorlage", ["Business", "Kreativ", "Minimalistisch"])
 
-# Optionales Logo hochladen
 logo_file = st.file_uploader("Firmenlogo hochladen (optional)", type=["jpg", "jpeg", "png"])
 
 align_map = {"Links": 0, "Zentriert": 1, "Rechts": 2}
 
-# Designvorlagen definieren
 color_map = {
     "Business": colors.HexColor("#2E4053"),
     "Kreativ": colors.HexColor("#8E44AD"),
     "Minimalistisch": colors.black
 }
+
 title_style = ParagraphStyle(
     name='TitleStyle',
-    fontName="DejaVuSans",
+    fontName=font_choice,
     fontSize=font_size + 4,
     leading=line_spacing + 2,
     alignment=align_map[alignment],
@@ -55,7 +68,7 @@ styles = getSampleStyleSheet()
 custom_style = ParagraphStyle(
     name='Custom',
     parent=styles['Normal'],
-    fontName="DejaVuSans",
+    fontName=font_choice,
     fontSize=font_size,
     leading=line_spacing,
     alignment=align_map[alignment]
@@ -107,7 +120,7 @@ def generate_invoice():
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
         ('ALIGN', (1, 1), (-1, -1), 'CENTER'),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-        ('FONTNAME', (0, 0), (-1, 0), "DejaVuSans")
+        ('FONTNAME', (0, 0), (-1, 0), font_choice)
     ]))
     elements.append(table)
 
@@ -115,22 +128,31 @@ def generate_invoice():
     buffer.seek(0)
     return buffer
 
-text_input = st.text_area("Dein Text (mit # für Kapitelüberschriften)", height=300)
-image_files = []
-if option == "E-Book":
-    image_files = st.file_uploader("Bilder hochladen (optional)", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
-
-if st.button("📥 PDF erstellen"):
+left, right = st.columns(2)
+with left:
+    text_input = st.text_area("Dein Text (mit # für Kapitelüberschriften)", height=300)
+    image_files = []
     if option == "E-Book":
-        if not text_input:
-            st.warning("Bitte Text eingeben.")
-        else:
-            pdf_buffer = generate_ebook(text_input, image_files)
-            st.download_button("📘 E-Book herunterladen", data=pdf_buffer, file_name="ebook.pdf", mime="application/pdf")
+        image_files = st.file_uploader("Bilder hochladen (optional)", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
 
-    elif option == "Rechnung":
-        pdf_buffer = generate_invoice()
-        st.download_button("🧾 Rechnung herunterladen", data=pdf_buffer, file_name="rechnung.pdf", mime="application/pdf")
+    if st.button("📥 PDF erstellen"):
+        if option == "E-Book":
+            if not text_input:
+                st.warning("Bitte Text eingeben.")
+            else:
+                pdf_buffer = generate_ebook(text_input, image_files)
+                st.session_state['preview_pdf'] = pdf_buffer.getvalue()
+        elif option == "Rechnung":
+            pdf_buffer = generate_invoice()
+            st.session_state['preview_pdf'] = pdf_buffer.getvalue()
 
+        st.success("PDF erfolgreich erstellt.")
+
+with right:
+    if 'preview_pdf' in st.session_state:
+        b64_pdf = base64.b64encode(st.session_state['preview_pdf']).decode('utf-8')
+        pdf_display = f'<iframe src="data:application/pdf;base64,{b64_pdf}" width="100%" height="600px" type="application/pdf"></iframe>'
+        st.markdown(pdf_display, unsafe_allow_html=True)
+        st.download_button("⬇️ PDF herunterladen", data=st.session_state['preview_pdf'], file_name="dokument.pdf", mime="application/pdf")
     else:
-        st.info("Dieses Dokumentenformat wird bald unterstützt.")
+        st.info("Hier erscheint die Vorschau deines Dokuments nach dem Erstellen.")
