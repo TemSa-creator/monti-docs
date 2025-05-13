@@ -9,7 +9,7 @@ from reportlab.pdfbase import pdfmetrics
 import io
 from PyPDF2 import PdfReader
 import base64
-import os
+from PIL import Image
 
 # Fonts registrieren
 pdfmetrics.registerFont(TTFont('DejaVuSans', 'fonts/DejaVuSans.ttf'))
@@ -80,6 +80,13 @@ with col2:
         alignment=align_map[alignment]
     )
 
+    def convert_uploaded_image(uploaded_file):
+        image = Image.open(uploaded_file)
+        image_bytes = io.BytesIO()
+        image.save(image_bytes, format='PNG')
+        image_bytes.seek(0)
+        return image_bytes
+
     def generate_ebook(text, chapter_image_map):
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=A4)
@@ -95,10 +102,8 @@ with col2:
                 elements.append(Paragraph(current_chapter, title_style))
                 if current_chapter in chapter_image_map:
                     elements.append(Spacer(1, 12))
-                    img = chapter_image_map[current_chapter]
-                    image_bytes = io.BytesIO(img.read())
-                    img.seek(0)
-                    elements.append(RLImage(image_bytes, width=10*cm, height=6*cm))
+                    img_data = convert_uploaded_image(chapter_image_map[current_chapter])
+                    elements.append(RLImage(img_data, width=10*cm, height=6*cm))
             else:
                 elements.append(Paragraph(line.strip(), custom_style))
                 elements.append(Spacer(1, 6))
@@ -113,9 +118,8 @@ with col2:
         elements = []
 
         if logo:
-            image_bytes = io.BytesIO(logo.read())
-            logo.seek(0)
-            elements.append(RLImage(image_bytes, width=4*cm, height=2*cm))
+            img_data = convert_uploaded_image(logo)
+            elements.append(RLImage(img_data, width=4*cm, height=2*cm))
 
         elements.append(Spacer(1, 12))
         elements.append(Paragraph("Rechnung", title_style))
