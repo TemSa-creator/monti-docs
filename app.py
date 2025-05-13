@@ -39,7 +39,7 @@ st.markdown("""
 col1, col2 = st.columns([1, 2])
 
 with col1:
-    st.image("https://i.postimg.cc/wMp2sCF4/Design-ohne-Titel-9.png", width=280)
+    st.image("https://i.postimg.cc/9Q4sX3M5/Kein-Titel-Lesezeichen.png", width=280)
 
 with col2:
     st.markdown("<div class='title'><h1>📄 Monti – Dein intelligenter PDF-Generator</h1></div>", unsafe_allow_html=True)
