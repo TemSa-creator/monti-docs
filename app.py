@@ -104,16 +104,20 @@ with col2:
         buffer.seek(0)
         return buffer
 
-    def generate_invoice(data, company_info, logo):
+    def generate_invoice(data, company_info, logo, ust):
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=A4)
         elements = []
 
         if logo:
             elements.append(RLImage(logo, width=4*cm, height=2*cm))
-            elements.append(Spacer(1, 8))
 
+        elements.append(Spacer(1, 12))
         elements.append(Paragraph("Rechnung", title_style))
+        elements.append(Spacer(1, 12))
+
+        for info in company_info:
+            elements.append(Paragraph(info, custom_style))
         elements.append(Spacer(1, 12))
 
         invoice_data = [
@@ -125,7 +129,13 @@ with col2:
             item['gesamt']
         ] for item in data]
 
-        invoice_data.append(["", "", "<b>Gesamt</b>", f"<b>{sum(float(i['gesamt'].replace(' €', '')) for i in data)} €</b>"])
+        netto = sum(float(i['gesamt'].replace(' €', '')) for i in data)
+        ust_betrag = (netto * ust / 100)
+        brutto = netto + ust_betrag
+
+        invoice_data.append(["", "", "Netto", f"{netto:.2f} €"])
+        invoice_data.append(["", "", f"USt ({ust:.0f}%)", f"{ust_betrag:.2f} €"])
+        invoice_data.append(["", "", "Brutto", f"{brutto:.2f} €"])
 
         table = Table(invoice_data, colWidths=[8*cm, 3*cm, 3*cm, 3*cm])
         table.setStyle(TableStyle([
@@ -139,9 +149,6 @@ with col2:
         elements.append(table)
         elements.append(Spacer(1, 24))
 
-        for info in company_info:
-            elements.append(Paragraph(info, custom_style))
-
         doc.build(elements)
         buffer.seek(0)
         return buffer
@@ -149,6 +156,7 @@ with col2:
     text_input = st.text_area("Dein Text (mit # für Kapitelüberschriften)", height=300)
     chapter_image_map = {}
 
+    ust = 0
     if option == "E-Book":
         image_files = st.file_uploader("Bilder hochladen", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
         if image_files:
@@ -165,6 +173,8 @@ with col2:
             st.text_input("UID-Nummer"),
             st.text_input("Bankverbindung (IBAN, BIC etc.)")
         ]
+        ust = st.number_input("Umsatzsteuer (%)", min_value=0.0, max_value=100.0, value=20.0)
+
         produkte = []
         for i in range(1, 4):
             beschreibung = st.text_input(f"Produktbeschreibung {i}", key=f"beschreibung_{i}")
@@ -195,7 +205,7 @@ with col2:
                     st.markdown(pdf_display, unsafe_allow_html=True)
 
         elif option == "Rechnung":
-            pdf_buffer = generate_invoice(produkte, firmendaten, logo_file)
+            pdf_buffer = generate_invoice(produkte, firmendaten, logo_file, ust)
             st.download_button("🩾 Rechnung herunterladen", data=pdf_buffer, file_name="rechnung.pdf", mime="application/pdf")
 
             with st.expander("📄 Vorschau anzeigen"):
