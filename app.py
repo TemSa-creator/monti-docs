@@ -44,7 +44,6 @@ with col1:
 with col2:
     st.markdown("<div class='title'><h1>📄 Monti – Dein intelligenter PDF-Generator</h1></div>", unsafe_allow_html=True)
 
-    # Auswahl des Dokumententyps
     option = st.selectbox("Was möchtest du erstellen?", ["E-Book", "Rechnung", "Brief", "Urkunde", "Präsentation"])
 
     font_size = st.slider("Schriftgröße", 8, 24, 12)
@@ -105,25 +104,30 @@ with col2:
         buffer.seek(0)
         return buffer
 
-    def generate_invoice():
+    def generate_invoice(data, company_info, logo):
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=A4)
         elements = []
 
-        if logo_file:
-            elements.append(RLImage(logo_file, width=4*cm, height=2*cm))
+        if logo:
+            elements.append(RLImage(logo, width=4*cm, height=2*cm))
             elements.append(Spacer(1, 8))
 
         elements.append(Paragraph("Rechnung", title_style))
         elements.append(Spacer(1, 12))
 
-        data = [
-            ["Beschreibung", "Menge", "Einzelpreis", "Gesamt"],
-            ["Produkt A", "2", "100 €", "200 €"],
-            ["Produkt B", "1", "150 €", "150 €"],
-            ["", "", "<b>Gesamt</b>", "<b>350 €</b>"]
-        ]
-        table = Table(data, colWidths=[8*cm, 3*cm, 3*cm, 3*cm])
+        invoice_data = [
+            ["Beschreibung", "Menge", "Einzelpreis", "Gesamt"]
+        ] + [[
+            item['beschreibung'],
+            item['menge'],
+            item['preis'],
+            item['gesamt']
+        ] for item in data]
+
+        invoice_data.append(["", "", "<b>Gesamt</b>", f"<b>{sum(float(i['gesamt'].replace(' €', '')) for i in data)} €</b>"])
+
+        table = Table(invoice_data, colWidths=[8*cm, 3*cm, 3*cm, 3*cm])
         table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), color_map[design_choice]),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
@@ -131,7 +135,12 @@ with col2:
             ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
             ('FONTNAME', (0, 0), (-1, 0), font_choice)
         ]))
+
         elements.append(table)
+        elements.append(Spacer(1, 24))
+
+        for info in company_info:
+            elements.append(Paragraph(info, custom_style))
 
         doc.build(elements)
         buffer.seek(0)
@@ -148,7 +157,31 @@ with col2:
                 if chapter:
                     chapter_image_map[chapter] = img
 
-    if st.button("📥 PDF erstellen"):
+    elif option == "Rechnung":
+        st.subheader("Rechnungsdaten")
+        firmendaten = [
+            st.text_input("Firmenname"),
+            st.text_input("Rechnungsadresse"),
+            st.text_input("UID-Nummer"),
+            st.text_input("Bankverbindung (IBAN, BIC etc.)")
+        ]
+        produkte = []
+        for i in range(1, 4):
+            beschreibung = st.text_input(f"Produktbeschreibung {i}", key=f"beschreibung_{i}")
+            menge = st.text_input(f"Menge {i}", key=f"menge_{i}")
+            preis = st.text_input(f"Einzelpreis {i} (€)", key=f"preis_{i}")
+            try:
+                gesamt = f"{float(menge) * float(preis):.2f} €"
+            except:
+                gesamt = "0.00 €"
+            produkte.append({
+                "beschreibung": beschreibung,
+                "menge": menge,
+                "preis": preis,
+                "gesamt": gesamt
+            })
+
+    if st.button("📅 PDF erstellen"):
         if option == "E-Book":
             if not text_input:
                 st.warning("Bitte Text eingeben.")
@@ -162,8 +195,8 @@ with col2:
                     st.markdown(pdf_display, unsafe_allow_html=True)
 
         elif option == "Rechnung":
-            pdf_buffer = generate_invoice()
-            st.download_button("🧾 Rechnung herunterladen", data=pdf_buffer, file_name="rechnung.pdf", mime="application/pdf")
+            pdf_buffer = generate_invoice(produkte, firmendaten, logo_file)
+            st.download_button("🩾 Rechnung herunterladen", data=pdf_buffer, file_name="rechnung.pdf", mime="application/pdf")
 
             with st.expander("📄 Vorschau anzeigen"):
                 base64_pdf = base64.b64encode(pdf_buffer.read()).decode('utf-8')
