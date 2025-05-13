@@ -3,3 +3,4 @@ fpdf
 pillow
 pdf2image
 reportlab
+PyPDF2
