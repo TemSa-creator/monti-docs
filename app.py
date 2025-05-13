@@ -81,36 +81,25 @@ with col2:
         alignment=align_map[alignment]
     )
 
-    text_input = st.text_area("Dein Text (mit # für Kapitelüberschriften)", height=300)
-
-    image_data = []
-    if option == "E-Book":
-        uploaded_images = st.file_uploader("Bilder hochladen (optional)", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
-        for img in uploaded_images:
-            with st.expander(f"Bild: {img.name}"):
-                chapter = st.text_input(f"Zu welchem Kapitel gehört dieses Bild? ({img.name})")
-                image_data.append((img, chapter.strip().lower()))
-
-    def generate_ebook(text, image_data):
+    def generate_ebook(text, image_chapters):
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=A4)
         elements = []
 
-        current_chapter = ""
         for line in text.split("\n"):
             if line.strip().startswith("#"):
-                current_chapter = line.strip('# ').strip().lower()
+                chapter_title = line.strip('# ').strip()
                 elements.append(Spacer(1, 12))
-                elements.append(Paragraph(line.strip('# ').strip(), title_style))
+                elements.append(Paragraph(chapter_title, title_style))
+                elements.append(Spacer(1, 6))
+                # Bild einfügen, wenn Kapitelname übereinstimmt
+                for img, chap in image_chapters:
+                    if chap.lower() in chapter_title.lower():
+                        elements.append(RLImage(img, width=12*cm, height=8*cm))
+                        elements.append(Spacer(1, 6))
             else:
                 elements.append(Paragraph(line.strip(), custom_style))
-            elements.append(Spacer(1, 6))
-
-            # Füge passendes Bild unterhalb der Überschrift oder nach Absatz ein
-            matching_images = [img for img, chap in image_data if chap == current_chapter]
-            for img in matching_images:
-                elements.append(Spacer(1, 12))
-                elements.append(RLImage(img, width=12*cm, height=8*cm))
+                elements.append(Spacer(1, 6))
 
         doc.build(elements)
         buffer.seek(0)
@@ -148,15 +137,23 @@ with col2:
         buffer.seek(0)
         return buffer
 
+    text_input = st.text_area("Dein Text (mit # für Kapitelüberschriften)", height=300)
+    image_chapters = []
+    if option == "E-Book":
+        image_files = st.file_uploader("Bilder hochladen (optional)", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
+        for idx, img in enumerate(image_files):
+            chapter = st.text_input(f"Zu welchem Kapitel gehört dieses Bild? ({img.name})", key=f"kapitel_{idx}")
+            if chapter:
+                image_chapters.append((img, chapter))
+
     if st.button("📥 PDF erstellen"):
         if option == "E-Book":
             if not text_input:
                 st.warning("Bitte Text eingeben.")
             else:
-                pdf_buffer = generate_ebook(text_input, image_data)
+                pdf_buffer = generate_ebook(text_input, image_chapters)
                 st.download_button("📘 E-Book herunterladen", data=pdf_buffer, file_name="ebook.pdf", mime="application/pdf")
 
-                # Vorschau in Spalte 2 anzeigen
                 with st.expander("📄 Vorschau anzeigen"):
                     base64_pdf = base64.b64encode(pdf_buffer.read()).decode('utf-8')
                     pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600px" type="application/pdf"></iframe>'
