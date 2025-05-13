@@ -9,11 +9,12 @@ from reportlab.pdfbase.ttfonts import TTFont
 import io
 import os
 
-# DejaVuSans Schrift für Emoji-Unterstützung registrieren
-pdfmetrics.registerFont(TTFont("DejaVuSans", "DejaVuSans.ttf"))
-
 st.set_page_config(page_title="Monti - Dokumenten-Bot", layout="centered")
 st.title("📄 Monti – Dein intelligenter PDF-Generator")
+
+# Register DejaVuSans with emoji support
+font_path = os.path.join("fonts", "DejaVuSans.ttf")
+pdfmetrics.registerFont(TTFont("DejaVuSans", font_path))
 
 # Auswahl des Dokumententyps
 option = st.selectbox("Was möchtest du erstellen?", [
@@ -28,7 +29,6 @@ option = st.selectbox("Was möchtest du erstellen?", [
 font_size = st.slider("Schriftgröße", 8, 24, 12)
 line_spacing = st.slider("Zeilenabstand", 10, 30, 16)
 alignment = st.selectbox("Ausrichtung", ["Links", "Zentriert", "Rechts"])
-font_choice = st.selectbox("Schriftart", ["DejaVuSans", "Helvetica", "Times-Roman", "Courier"])
 design_choice = st.selectbox("Design-Vorlage", ["Business", "Kreativ", "Minimalistisch"])
 
 # Optionales Logo hochladen
@@ -36,16 +36,15 @@ logo_file = st.file_uploader("Firmenlogo hochladen (optional)", type=["jpg", "jp
 
 align_map = {"Links": 0, "Zentriert": 1, "Rechts": 2}
 
-# Designfarben
+# Designvorlagen definieren
 color_map = {
     "Business": colors.HexColor("#2E4053"),
     "Kreativ": colors.HexColor("#8E44AD"),
     "Minimalistisch": colors.black
 }
-
 title_style = ParagraphStyle(
     name='TitleStyle',
-    fontName=font_choice,
+    fontName="DejaVuSans",
     fontSize=font_size + 4,
     leading=line_spacing + 2,
     alignment=align_map[alignment],
@@ -56,7 +55,7 @@ styles = getSampleStyleSheet()
 custom_style = ParagraphStyle(
     name='Custom',
     parent=styles['Normal'],
-    fontName=font_choice,
+    fontName="DejaVuSans",
     fontSize=font_size,
     leading=line_spacing,
     alignment=align_map[alignment]
@@ -70,7 +69,7 @@ def generate_ebook(text, images):
     for line in text.split("\n"):
         if line.strip().startswith("#"):
             elements.append(Spacer(1, 12))
-            elements.append(Paragraph(f"<b>{line.strip('# ').strip()}</b>", title_style))
+            elements.append(Paragraph(line.strip('# ').strip(), title_style))
         else:
             elements.append(Paragraph(line.strip(), custom_style))
             elements.append(Spacer(1, 6))
@@ -108,7 +107,7 @@ def generate_invoice():
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
         ('ALIGN', (1, 1), (-1, -1), 'CENTER'),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-        ('FONTNAME', (0, 0), (-1, 0), font_choice)
+        ('FONTNAME', (0, 0), (-1, 0), "DejaVuSans")
     ]))
     elements.append(table)
 
@@ -116,7 +115,7 @@ def generate_invoice():
     buffer.seek(0)
     return buffer
 
-text_input = st.text_area("Dein Text (nutze # für Überschriften, Emojis erlaubt!)", height=300)
+text_input = st.text_area("Dein Text (mit # für Kapitelüberschriften)", height=300)
 image_files = []
 if option == "E-Book":
     image_files = st.file_uploader("Bilder hochladen (optional)", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
