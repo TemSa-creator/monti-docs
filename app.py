@@ -81,21 +81,34 @@ with col2:
         alignment=align_map[alignment]
     )
 
-    def generate_ebook(text, images):
+    text_input = st.text_area("Dein Text (mit # für Kapitelüberschriften)", height=300)
+
+    image_data = []
+    if option == "E-Book":
+        uploaded_images = st.file_uploader("Bilder hochladen (optional)", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
+        for img in uploaded_images:
+            with st.expander(f"Bild: {img.name}"):
+                chapter = st.text_input(f"Zu welchem Kapitel gehört dieses Bild? ({img.name})")
+                image_data.append((img, chapter.strip().lower()))
+
+    def generate_ebook(text, image_data):
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=A4)
         elements = []
 
+        current_chapter = ""
         for line in text.split("\n"):
             if line.strip().startswith("#"):
+                current_chapter = line.strip('# ').strip().lower()
                 elements.append(Spacer(1, 12))
                 elements.append(Paragraph(line.strip('# ').strip(), title_style))
             else:
                 elements.append(Paragraph(line.strip(), custom_style))
-                elements.append(Spacer(1, 6))
+            elements.append(Spacer(1, 6))
 
-        if images:
-            for img in images:
+            # Füge passendes Bild unterhalb der Überschrift oder nach Absatz ein
+            matching_images = [img for img, chap in image_data if chap == current_chapter]
+            for img in matching_images:
                 elements.append(Spacer(1, 12))
                 elements.append(RLImage(img, width=12*cm, height=8*cm))
 
@@ -135,17 +148,12 @@ with col2:
         buffer.seek(0)
         return buffer
 
-    text_input = st.text_area("Dein Text (mit # für Kapitelüberschriften)", height=300)
-    image_files = []
-    if option == "E-Book":
-        image_files = st.file_uploader("Bilder hochladen (optional)", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
-
     if st.button("📥 PDF erstellen"):
         if option == "E-Book":
             if not text_input:
                 st.warning("Bitte Text eingeben.")
             else:
-                pdf_buffer = generate_ebook(text_input, image_files)
+                pdf_buffer = generate_ebook(text_input, image_data)
                 st.download_button("📘 E-Book herunterladen", data=pdf_buffer, file_name="ebook.pdf", mime="application/pdf")
 
                 # Vorschau in Spalte 2 anzeigen
