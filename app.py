@@ -101,12 +101,25 @@ with col2:
                 current_chapter = line.strip('# ').strip().lower()
                 elements.append(Spacer(1, 12))
                 elements.append(Paragraph(current_chapter.title(), title_style))
+
                 for key in chapter_image_map:
-                    if key.lower() in current_chapter:
+                    if key.lower() == current_chapter:
                         try:
-                            elements.append(Spacer(1, 12))
-                            img_data = convert_uploaded_image(chapter_image_map[key])
-                            elements.append(RLImage(img_data, width=12*cm, height=8*cm))
+                            img_data = convert_uploaded_image(chapter_image_map[key]['file'])
+                            position = chapter_image_map[key]['position']
+                            if position == "Unter Text":
+                                elements.append(Spacer(1, 12))
+                                elements.append(RLImage(img_data, width=12*cm, height=8*cm))
+                            elif position == "Über Text":
+                                elements.insert(-1, RLImage(img_data, width=12*cm, height=8*cm))
+                            elif position == "Neben Text":
+                                table = Table([
+                                    [RLImage(img_data, width=6*cm, height=4*cm), Paragraph(current_chapter.title(), title_style)]
+                                ])
+                                elements[-1] = table
+                            elif position == "Hinter Text":
+                                elements.append(Spacer(1, 12))
+                                elements.append(Paragraph("[Bild hinter Text – aktuell nicht unterstützt in PDF]", custom_style))
                         except Exception as e:
                             elements.append(Paragraph(f"⚠️ Bild konnte nicht geladen werden: {e}", custom_style))
                         break
@@ -172,8 +185,9 @@ with col2:
         if image_files:
             for i, img in enumerate(image_files):
                 chapter = st.text_input(f"Zu welchem Kapitel gehört dieses Bild? ({img.name})", key=f"chapter_input_{i}")
+                position = st.selectbox("Bildposition", ["Unter Text", "Über Text", "Neben Text", "Hinter Text"], key=f"position_{i}")
                 if chapter:
-                    chapter_image_map[chapter.lower()] = img
+                    chapter_image_map[chapter.lower()] = {"file": img, "position": position}
 
     elif option == "Rechnung":
         st.subheader("Rechnungsdaten")
