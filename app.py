@@ -82,7 +82,7 @@ with col2:
 
     def convert_uploaded_image(uploaded_file):
         image = Image.open(uploaded_file)
-        image.thumbnail((400, 300))  # Skaliere zur Sicherheit
+        image.thumbnail((400, 300))
         image_bytes = io.BytesIO()
         image.save(image_bytes, format='PNG')
         image_bytes.seek(0)
@@ -98,16 +98,18 @@ with col2:
 
         for line in lines:
             if line.strip().startswith("#"):
-                current_chapter = line.strip('# ').strip()
+                current_chapter = line.strip('# ').strip().lower()
                 elements.append(Spacer(1, 12))
-                elements.append(Paragraph(current_chapter, title_style))
-                if current_chapter in chapter_image_map:
-                    try:
-                        elements.append(Spacer(1, 12))
-                        img_data = convert_uploaded_image(chapter_image_map[current_chapter])
-                        elements.append(RLImage(img_data, width=12*cm, height=8*cm))
-                    except Exception as e:
-                        elements.append(Paragraph(f"⚠️ Bild konnte nicht geladen werden: {e}", custom_style))
+                elements.append(Paragraph(current_chapter.title(), title_style))
+                for key in chapter_image_map:
+                    if key.lower() in current_chapter:
+                        try:
+                            elements.append(Spacer(1, 12))
+                            img_data = convert_uploaded_image(chapter_image_map[key])
+                            elements.append(RLImage(img_data, width=12*cm, height=8*cm))
+                        except Exception as e:
+                            elements.append(Paragraph(f"⚠️ Bild konnte nicht geladen werden: {e}", custom_style))
+                        break
             else:
                 elements.append(Paragraph(line.strip(), custom_style))
                 elements.append(Spacer(1, 6))
@@ -133,14 +135,9 @@ with col2:
             elements.append(Paragraph(info, custom_style))
         elements.append(Spacer(1, 12))
 
-        invoice_data = [
-            ["Beschreibung", "Menge", "Einzelpreis", "Gesamt"]
-        ] + [[
-            item['beschreibung'],
-            item['menge'],
-            item['preis'],
-            item['gesamt']
-        ] for item in data]
+        invoice_data = [["Beschreibung", "Menge", "Einzelpreis", "Gesamt"]] + [
+            [item['beschreibung'], item['menge'], item['preis'], item['gesamt']] for item in data
+        ]
 
         netto = sum(float(i['gesamt'].replace(' €', '')) for i in data)
         ust_betrag = (netto * ust / 100)
@@ -176,7 +173,7 @@ with col2:
             for i, img in enumerate(image_files):
                 chapter = st.text_input(f"Zu welchem Kapitel gehört dieses Bild? ({img.name})", key=f"chapter_input_{i}")
                 if chapter:
-                    chapter_image_map[chapter] = img
+                    chapter_image_map[chapter.lower()] = img
 
     elif option == "Rechnung":
         st.subheader("Rechnungsdaten")
