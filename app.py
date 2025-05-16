@@ -103,7 +103,7 @@ with col2:
                 elements.append(Paragraph(current_chapter.title(), title_style))
 
                 for key in chapter_image_map:
-                    if key.lower() == current_chapter:
+                    if key.lower() in current_chapter or current_chapter in key.lower():
                         try:
                             img_data = convert_uploaded_image(chapter_image_map[key]['file'])
                             position = chapter_image_map[key]['position']
