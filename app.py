@@ -11,6 +11,7 @@ from PyPDF2 import PdfReader
 import base64
 from PIL import Image
 import tempfile
+import os
 
 # Fonts registrieren
 pdfmetrics.registerFont(TTFont('DejaVuSans', 'fonts/DejaVuSans.ttf'))
@@ -82,11 +83,11 @@ with col2:
     def convert_uploaded_image(uploaded_file):
         try:
             image = Image.open(uploaded_file).convert("RGB")
-            image.thumbnail((500, 500))
             with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp_file:
                 image.save(tmp_file.name, format='JPEG')
                 return tmp_file.name
         except Exception as e:
+            st.error(f"Bildverarbeitung fehlgeschlagen: {e}")
             return None
 
     def generate_ebook(text, chapter_image_map):
@@ -106,19 +107,22 @@ with col2:
                 for key, content in chapter_image_map.items():
                     if key.lower() in current_chapter or current_chapter in key.lower():
                         img_path = convert_uploaded_image(content['file'])
-                        if img_path:
-                            img = RLImage(img_path, width=12*cm, height=8*cm)
-                            pos = content['position']
-                            if pos == "Unter Text":
-                                elements.append(Spacer(1, 12))
-                                elements.append(img)
-                            elif pos == "Über Text":
-                                elements.insert(-1, img)
-                            elif pos == "Neben Text":
-                                table = Table([[img, Paragraph(current_chapter.title(), title_style)]])
-                                elements[-1] = table
-                            elif pos == "Hinter Text":
-                                elements.append(Paragraph("[Bild hinter Text – aktuell nicht unterstützt in PDF]", custom_style))
+                        if img_path and os.path.exists(img_path):
+                            try:
+                                img = RLImage(img_path, width=12*cm, height=8*cm)
+                                pos = content['position']
+                                if pos == "Unter Text":
+                                    elements.append(Spacer(1, 12))
+                                    elements.append(img)
+                                elif pos == "Über Text":
+                                    elements.insert(-1, img)
+                                elif pos == "Neben Text":
+                                    table = Table([[img, Paragraph(current_chapter.title(), title_style)]])
+                                    elements[-1] = table
+                                elif pos == "Hinter Text":
+                                    elements.append(Paragraph("[Bild hinter Text – aktuell nicht unterstützt]", custom_style))
+                            except Exception as e:
+                                elements.append(Paragraph(f"Fehler beim Einfügen des Bildes: {e}", custom_style))
                         else:
                             elements.append(Paragraph("⚠️ Bild konnte nicht geladen werden.", custom_style))
                         break
