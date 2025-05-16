@@ -82,6 +82,7 @@ with col2:
 
     def convert_uploaded_image(uploaded_file):
         image = Image.open(uploaded_file)
+        image.thumbnail((400, 300))  # Skaliere zur Sicherheit
         image_bytes = io.BytesIO()
         image.save(image_bytes, format='PNG')
         image_bytes.seek(0)
@@ -101,9 +102,12 @@ with col2:
                 elements.append(Spacer(1, 12))
                 elements.append(Paragraph(current_chapter, title_style))
                 if current_chapter in chapter_image_map:
-                    elements.append(Spacer(1, 12))
-                    img_data = convert_uploaded_image(chapter_image_map[current_chapter])
-                    elements.append(RLImage(img_data, width=10*cm, height=6*cm))
+                    try:
+                        elements.append(Spacer(1, 12))
+                        img_data = convert_uploaded_image(chapter_image_map[current_chapter])
+                        elements.append(RLImage(img_data, width=12*cm, height=8*cm))
+                    except Exception as e:
+                        elements.append(Paragraph(f"⚠️ Bild konnte nicht geladen werden: {e}", custom_style))
             else:
                 elements.append(Paragraph(line.strip(), custom_style))
                 elements.append(Spacer(1, 6))
@@ -112,7 +116,7 @@ with col2:
         buffer.seek(0)
         return buffer
 
-    def generate_invoice(data, company_info, logo, ust, special_notes):
+    def generate_invoice(data, company_info, logo, ust):
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=A4)
         elements = []
@@ -158,11 +162,6 @@ with col2:
         elements.append(table)
         elements.append(Spacer(1, 24))
 
-        if special_notes:
-            elements.append(Paragraph("Hinweis:", title_style))
-            elements.append(Spacer(1, 6))
-            elements.append(Paragraph(special_notes, custom_style))
-
         doc.build(elements)
         buffer.seek(0)
         return buffer
@@ -171,8 +170,6 @@ with col2:
     chapter_image_map = {}
 
     ust = 0
-    special_notes = ""
-
     if option == "E-Book":
         image_files = st.file_uploader("Bilder hochladen", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
         if image_files:
@@ -190,11 +187,6 @@ with col2:
             st.text_input("Bankverbindung (IBAN, BIC etc.)")
         ]
         ust = st.number_input("Umsatzsteuer (%)", min_value=0.0, max_value=100.0, value=20.0)
-
-        if st.checkbox("Kleinunternehmerregelung"):
-            special_notes = "Gemäß §19 UStG wird keine Umsatzsteuer ausgewiesen."
-        elif st.checkbox("Reverse Charge"):
-            special_notes = "Steuerschuldnerschaft des Leistungsempfängers (Reverse-Charge-Verfahren)."
 
         produkte = []
         for i in range(1, 4):
@@ -226,7 +218,7 @@ with col2:
                     st.markdown(pdf_display, unsafe_allow_html=True)
 
         elif option == "Rechnung":
-            pdf_buffer = generate_invoice(produkte, firmendaten, logo_file, ust, special_notes)
+            pdf_buffer = generate_invoice(produkte, firmendaten, logo_file, ust)
             st.download_button("🩾 Rechnung herunterladen", data=pdf_buffer, file_name="rechnung.pdf", mime="application/pdf")
 
             with st.expander("📄 Vorschau anzeigen"):
