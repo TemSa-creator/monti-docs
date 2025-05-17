@@ -82,10 +82,12 @@ with col2:
 
     def convert_uploaded_image(uploaded_file):
         try:
+            if uploaded_file is None:
+                return None
             image = Image.open(uploaded_file).convert("RGB")
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp_file:
-                image.save(tmp_file.name, format='JPEG')
-                return tmp_file.name
+            tmp_path = os.path.join(tempfile.gettempdir(), uploaded_file.name)
+            image.save(tmp_path, format="JPEG")
+            return tmp_path
         except Exception as e:
             st.error(f"Bildverarbeitung fehlgeschlagen: {e}")
             return None
@@ -97,38 +99,51 @@ with col2:
 
         lines = text.split("\n")
         current_chapter = None
+        chapter_content = []
+
+        def render_chapter(title, content, image_info):
+            chapter_elements = []
+            if image_info and image_info['position'] == "Über Text":
+                img_path = convert_uploaded_image(image_info['file'])
+                if img_path:
+                    chapter_elements.append(RLImage(img_path, width=12*cm, preserveAspectRatio=True))
+            chapter_elements.append(Paragraph(title.title(), title_style))
+            if image_info and image_info['position'] == "Neben Text":
+                img_path = convert_uploaded_image(image_info['file'])
+                if img_path:
+                    chapter_elements.append(
+                        Table(
+                            [[RLImage(img_path, width=6*cm, preserveAspectRatio=True), Paragraph("<br/>".join(content), custom_style)]],
+                            colWidths=[6*cm, None]
+                        )
+                    )
+            else:
+                for line in content:
+                    chapter_elements.append(Paragraph(line, custom_style))
+                    chapter_elements.append(Spacer(1, 6))
+            if image_info and image_info['position'] == "Unter Text":
+                img_path = convert_uploaded_image(image_info['file'])
+                if img_path:
+                    chapter_elements.append(Spacer(1, 12))
+                    chapter_elements.append(RLImage(img_path, width=12*cm, preserveAspectRatio=True))
+            if image_info and image_info['position'] == "Hinter Text":
+                chapter_elements.append(Paragraph("[Bild hinter Text – nicht unterstützt]", custom_style))
+            chapter_elements.append(Spacer(1, 12))
+            return chapter_elements
 
         for line in lines:
             if line.strip().startswith("#"):
-                current_chapter = line.strip('# ').strip().lower()
-                elements.append(Spacer(1, 12))
-                elements.append(Paragraph(current_chapter.title(), title_style))
-
-                for key, content in chapter_image_map.items():
-                    if key.lower() in current_chapter or current_chapter in key.lower():
-                        img_path = convert_uploaded_image(content['file'])
-                        if img_path and os.path.exists(img_path):
-                            try:
-                                img = RLImage(img_path, width=12*cm, height=8*cm)
-                                pos = content['position']
-                                if pos == "Unter Text":
-                                    elements.append(Spacer(1, 12))
-                                    elements.append(img)
-                                elif pos == "Über Text":
-                                    elements.insert(-1, img)
-                                elif pos == "Neben Text":
-                                    table = Table([[img, Paragraph(current_chapter.title(), title_style)]])
-                                    elements[-1] = table
-                                elif pos == "Hinter Text":
-                                    elements.append(Paragraph("[Bild hinter Text – aktuell nicht unterstützt]", custom_style))
-                            except Exception as e:
-                                elements.append(Paragraph(f"Fehler beim Einfügen des Bildes: {e}", custom_style))
-                        else:
-                            elements.append(Paragraph("⚠️ Bild konnte nicht geladen werden.", custom_style))
-                        break
+                if current_chapter:
+                    image_info = chapter_image_map.get(current_chapter.lower())
+                    elements.extend(render_chapter(current_chapter, chapter_content, image_info))
+                current_chapter = line.strip('# ').strip()
+                chapter_content = []
             else:
-                elements.append(Paragraph(line.strip(), custom_style))
-                elements.append(Spacer(1, 6))
+                chapter_content.append(line.strip())
+
+        if current_chapter:
+            image_info = chapter_image_map.get(current_chapter.lower())
+            elements.extend(render_chapter(current_chapter, chapter_content, image_info))
 
         doc.build(elements)
         buffer.seek(0)
