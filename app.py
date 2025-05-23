@@ -93,12 +93,13 @@ with col2:
             image = Image.open(uploaded_file).convert("RGB")
             if max_width:
                 base_width = int(max_width * cm)
-                w_percent = (base_width / float(image.size[0]))
-                h_size = int((float(image.size[1]) * float(w_percent)))
+                w_percent = base_width / float(image.size[0])
+                h_size = int(float(image.size[1]) * w_percent)
                 image = image.resize((base_width, h_size), Image.ANTIALIAS)
-            tmp_path = os.path.join(tempfile.gettempdir(), uploaded_file.name)
-            image.save(tmp_path, format="JPEG")
-            return tmp_path
+            img_byte_arr = io.BytesIO()
+            image.save(img_byte_arr, format='JPEG')
+            img_byte_arr.seek(0)
+            return img_byte_arr
         except Exception as e:
             st.error(f"Bildverarbeitung fehlgeschlagen: {e}")
             return None
