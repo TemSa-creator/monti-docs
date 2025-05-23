@@ -11,6 +11,7 @@ from PIL import Image
 import tempfile
 import os
 import base64
+import re
 
 # Fonts registrieren
 pdfmetrics.registerFont(TTFont('DejaVuSans', 'fonts/DejaVuSans.ttf'))
@@ -102,6 +103,9 @@ with col2:
             st.error(f"Bildverarbeitung fehlgeschlagen: {e}")
             return None
 
+    def extract_chapter_titles(text):
+        return [line.strip('# ').strip() for line in text.split('\n') if line.strip().startswith('#')]
+
     def generate_ebook(text, chapter_image_map, page_size):
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=page_size)
@@ -162,19 +166,22 @@ with col2:
 
     text_input = st.text_area("Dein Text mit #Kapitelüberschrift\nBeispiel:\n# Einleitung\nHier beginnt dein Text...", height=300)
     chapter_image_map = {}
+    chapter_titles = extract_chapter_titles(text_input)
 
     if option == "E-Book":
         st.markdown("**📸 Bilder hochladen und dem passenden Kapitel zuordnen:**")
-        st.markdown("_Hinweis: Gib den **genauen Kapitel-Titel** wie im Text an (z. B. 'Einleitung')_")
         image_files = st.file_uploader("Bilder auswählen", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
-        if image_files:
+        if image_files and chapter_titles:
             for i, img in enumerate(image_files):
                 with st.expander(f"Bild-Einstellungen: {img.name}"):
-                    chapter = st.text_input(f"Kapitelzuordnung für dieses Bild", key=f"ch_{i}")
+                    st.image(img, width=200)
+                    chapter = st.selectbox("Kapitel für dieses Bild auswählen", chapter_titles, key=f"ch_{i}")
                     position = st.selectbox("Position im Kapitel", ["Unter Text", "Über Text", "Neben Text", "Hinter Text"], key=f"pos_{i}")
                     width = st.slider("Bildbreite in cm", 4, 16, 12, key=f"width_{i}")
                     if chapter:
                         chapter_image_map[chapter.lower()] = {"file": img, "position": position, "width": width}
+        elif image_files:
+            st.warning("Bitte gib zuerst Text mit Kapitelüberschriften (# Kapitelname) ein, um Kapitel zu erkennen.")
 
     if st.button("📄 PDF erstellen"):
         if not text_input:
