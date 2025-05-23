@@ -88,8 +88,6 @@ with col2:
 
     def convert_uploaded_image(uploaded_file, max_width=None):
         try:
-            if uploaded_file is None:
-                return None
             image = Image.open(uploaded_file).convert("RGB")
             if max_width:
                 base_width = int(max_width * cm)
@@ -162,18 +160,21 @@ with col2:
         buffer.seek(0)
         return buffer
 
-    text_input = st.text_area("Dein Text (mit # für Kapitelüberschriften)", height=300)
+    text_input = st.text_area("Dein Text mit #Kapitelüberschrift\nBeispiel:\n# Einleitung\nHier beginnt dein Text...", height=300)
     chapter_image_map = {}
 
     if option == "E-Book":
-        image_files = st.file_uploader("Bilder hochladen", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
+        st.markdown("**📸 Bilder hochladen und dem passenden Kapitel zuordnen:**")
+        st.markdown("_Hinweis: Gib den **genauen Kapitel-Titel** wie im Text an (z. B. 'Einleitung')_")
+        image_files = st.file_uploader("Bilder auswählen", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
         if image_files:
             for i, img in enumerate(image_files):
-                chapter = st.text_input(f"Kapitel für Bild ({img.name})", key=f"ch_{i}")
-                position = st.selectbox("Bildposition", ["Unter Text", "Über Text", "Neben Text", "Hinter Text"], key=f"pos_{i}")
-                width = st.slider(f"Breite in cm für {img.name}", 4, 16, 12, key=f"width_{i}")
-                if chapter:
-                    chapter_image_map[chapter.lower()] = {"file": img, "position": position, "width": width}
+                with st.expander(f"Bild-Einstellungen: {img.name}"):
+                    chapter = st.text_input(f"Kapitelzuordnung für dieses Bild", key=f"ch_{i}")
+                    position = st.selectbox("Position im Kapitel", ["Unter Text", "Über Text", "Neben Text", "Hinter Text"], key=f"pos_{i}")
+                    width = st.slider("Bildbreite in cm", 4, 16, 12, key=f"width_{i}")
+                    if chapter:
+                        chapter_image_map[chapter.lower()] = {"file": img, "position": position, "width": width}
 
     if st.button("📄 PDF erstellen"):
         if not text_input:
