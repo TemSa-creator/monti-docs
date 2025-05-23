@@ -94,7 +94,7 @@ with col2:
                 base_width = int(max_width * cm)
                 w_percent = base_width / float(image.size[0])
                 h_size = int(float(image.size[1]) * w_percent)
-                image = image.resize((base_width, h_size), Image.ANTIALIAS)
+                image = image.resize((base_width, h_size), Image.Resampling.LANCZOS)
             img_byte_arr = io.BytesIO()
             image.save(img_byte_arr, format='JPEG')
             img_byte_arr.seek(0)
