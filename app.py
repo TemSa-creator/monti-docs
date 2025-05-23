@@ -1,17 +1,16 @@
 import streamlit as st
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image as RLImage, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.pagesizes import A4
+from reportlab.lib.pagesizes import A4, letter
+from reportlab.lib.units import cm, inch
 from reportlab.lib import colors
-from reportlab.lib.units import cm
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
 import io
-from PyPDF2 import PdfReader
-import base64
 from PIL import Image
 import tempfile
 import os
+import base64
 
 # Fonts registrieren
 pdfmetrics.registerFont(TTFont('DejaVuSans', 'fonts/DejaVuSans.ttf'))
@@ -42,7 +41,7 @@ with col1:
     st.image("https://i.postimg.cc/9Q4sX3M5/Kein-Titel-Lesezeichen.png", width=280)
 
 with col2:
-    st.markdown("<div class='title'><h1>📄 Monti – Dein intelligenter PDF-Generator</h1></div>", unsafe_allow_html=True)
+    st.markdown("<div class='title'><h1>\ud83d\udcc4 Monti – Dein intelligenter PDF-Generator</h1></div>", unsafe_allow_html=True)
 
     option = st.selectbox("Was möchtest du erstellen?", ["E-Book", "Rechnung", "Brief", "Urkunde", "Präsentation"])
 
@@ -51,6 +50,13 @@ with col2:
     alignment = st.selectbox("Ausrichtung", ["Links", "Zentriert", "Rechts"])
     font_choice = st.selectbox("Schriftart", ["DejaVuSans", "NotoSans"])
     design_choice = st.selectbox("Design-Vorlage", ["Business", "Kreativ", "Minimalistisch"])
+
+    page_size_option = st.selectbox("Seitenformat", ["A4", "KDP 6x9 inch", "KDP 8.5x11 inch"])
+    page_sizes = {
+        "A4": A4,
+        "KDP 6x9 inch": (6*inch, 9*inch),
+        "KDP 8.5x11 inch": (8.5*inch, 11*inch)
+    }
 
     logo_file = st.file_uploader("Firmenlogo hochladen (optional)", type=["jpg", "jpeg", "png"])
 
@@ -80,11 +86,15 @@ with col2:
         alignment=align_map[alignment]
     )
 
-    def convert_uploaded_image(uploaded_file):
+    def convert_uploaded_image(uploaded_file, max_width=None):
         try:
             if uploaded_file is None:
                 return None
             image = Image.open(uploaded_file).convert("RGB")
+            if max_width:
+                width_percent = (max_width * cm) / float(image.size[0])
+                height_size = int((float(image.size[1]) * float(width_percent)))
+                image = image.resize((int(max_width * cm), height_size), Image.ANTIALIAS)
             tmp_path = os.path.join(tempfile.gettempdir(), uploaded_file.name)
             image.save(tmp_path, format="JPEG")
             return tmp_path
@@ -92,9 +102,9 @@ with col2:
             st.error(f"Bildverarbeitung fehlgeschlagen: {e}")
             return None
 
-    def generate_ebook(text, chapter_image_map):
+    def generate_ebook(text, chapter_image_map, page_size):
         buffer = io.BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4)
+        doc = SimpleDocTemplate(buffer, pagesize=page_size)
         elements = []
 
         lines = text.split("\n")
@@ -103,18 +113,19 @@ with col2:
 
         def render_chapter(title, content, image_info):
             chapter_elements = []
-            if image_info and image_info['position'] == "Über Text":
-                img_path = convert_uploaded_image(image_info['file'])
+            width = image_info.get('width', 12) if image_info else 12
+            if image_info and image_info['position'] == "\u00dcber Text":
+                img_path = convert_uploaded_image(image_info['file'], max_width=width)
                 if img_path:
-                    chapter_elements.append(RLImage(img_path, width=12*cm, preserveAspectRatio=True))
+                    chapter_elements.append(RLImage(img_path, width=width*cm, preserveAspectRatio=True))
             chapter_elements.append(Paragraph(title.title(), title_style))
             if image_info and image_info['position'] == "Neben Text":
-                img_path = convert_uploaded_image(image_info['file'])
+                img_path = convert_uploaded_image(image_info['file'], max_width=width)
                 if img_path:
                     chapter_elements.append(
                         Table(
-                            [[RLImage(img_path, width=6*cm, preserveAspectRatio=True), Paragraph("<br/>".join(content), custom_style)]],
-                            colWidths=[6*cm, None]
+                            [[RLImage(img_path, width=width*cm, preserveAspectRatio=True), Paragraph("<br/>".join(content), custom_style)]],
+                            colWidths=[width*cm, None]
                         )
                     )
             else:
@@ -122,10 +133,10 @@ with col2:
                     chapter_elements.append(Paragraph(line, custom_style))
                     chapter_elements.append(Spacer(1, 6))
             if image_info and image_info['position'] == "Unter Text":
-                img_path = convert_uploaded_image(image_info['file'])
+                img_path = convert_uploaded_image(image_info['file'], max_width=width)
                 if img_path:
                     chapter_elements.append(Spacer(1, 12))
-                    chapter_elements.append(RLImage(img_path, width=12*cm, preserveAspectRatio=True))
+                    chapter_elements.append(RLImage(img_path, width=width*cm, preserveAspectRatio=True))
             if image_info and image_info['position'] == "Hinter Text":
                 chapter_elements.append(Paragraph("[Bild hinter Text – nicht unterstützt]", custom_style))
             chapter_elements.append(Spacer(1, 12))
@@ -156,18 +167,19 @@ with col2:
         image_files = st.file_uploader("Bilder hochladen", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
         if image_files:
             for i, img in enumerate(image_files):
-                chapter = st.text_input(f"Zu welchem Kapitel gehört dieses Bild? ({img.name})", key=f"ch_{i}")
-                position = st.selectbox("Bildposition", ["Unter Text", "Über Text", "Neben Text", "Hinter Text"], key=f"pos_{i}")
+                chapter = st.text_input(f"Kapitel für Bild ({img.name})", key=f"ch_{i}")
+                position = st.selectbox("Bildposition", ["Unter Text", "\u00dcber Text", "Neben Text", "Hinter Text"], key=f"pos_{i}")
+                width = st.slider(f"Breite in cm für {img.name}", 4, 16, 12, key=f"width_{i}")
                 if chapter:
-                    chapter_image_map[chapter.lower()] = {"file": img, "position": position}
+                    chapter_image_map[chapter.lower()] = {"file": img, "position": position, "width": width}
 
-    if st.button("📄 PDF erstellen"):
+    if st.button("\ud83d\udcc4 PDF erstellen"):
         if not text_input:
             st.warning("Bitte Text eingeben.")
         else:
-            pdf_buffer = generate_ebook(text_input, chapter_image_map)
-            st.download_button("📘 E-Book herunterladen", data=pdf_buffer, file_name="ebook.pdf", mime="application/pdf")
-            with st.expander("📄 Vorschau anzeigen"):
+            pdf_buffer = generate_ebook(text_input, chapter_image_map, page_sizes[page_size_option])
+            st.download_button("\ud83d\udcd8 E-Book herunterladen", data=pdf_buffer, file_name="ebook.pdf", mime="application/pdf")
+            with st.expander("\ud83d\udcc4 Vorschau anzeigen"):
                 base64_pdf = base64.b64encode(pdf_buffer.read()).decode('utf-8')
                 pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600px" type="application/pdf"></iframe>'
                 st.markdown(pdf_display, unsafe_allow_html=True)
