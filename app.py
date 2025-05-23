@@ -121,7 +121,7 @@ with col2:
             if image_info and image_info['position'] == "Über Text":
                 img_path = convert_uploaded_image(image_info['file'], max_width=width)
                 if img_path:
-                    chapter_elements.append(RLImage(img_path, width=width*cm, preserveAspectRatio=True))
+                    chapter_elements.append(RLImage(img_path, width=width*cm, ))
             chapter_elements.append(Paragraph(title.title(), title_style))
             if image_info and image_info['position'] == "Neben Text":
                 img_path = convert_uploaded_image(image_info['file'], max_width=width)
