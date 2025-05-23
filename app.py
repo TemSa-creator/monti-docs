@@ -41,7 +41,7 @@ with col1:
     st.image("https://i.postimg.cc/9Q4sX3M5/Kein-Titel-Lesezeichen.png", width=280)
 
 with col2:
-    st.markdown("<div class='title'><h1>\ud83d\udcc4 Monti – Dein intelligenter PDF-Generator</h1></div>", unsafe_allow_html=True)
+    st.markdown("<div class='title'><h1>📄 Monti – Dein intelligenter PDF-Generator</h1></div>", unsafe_allow_html=True)
 
     option = st.selectbox("Was möchtest du erstellen?", ["E-Book", "Rechnung", "Brief", "Urkunde", "Präsentation"])
 
@@ -92,9 +92,10 @@ with col2:
                 return None
             image = Image.open(uploaded_file).convert("RGB")
             if max_width:
-                width_percent = (max_width * cm) / float(image.size[0])
-                height_size = int((float(image.size[1]) * float(width_percent)))
-                image = image.resize((int(max_width * cm), height_size), Image.ANTIALIAS)
+                base_width = int(max_width * cm)
+                w_percent = (base_width / float(image.size[0]))
+                h_size = int((float(image.size[1]) * float(w_percent)))
+                image = image.resize((base_width, h_size), Image.ANTIALIAS)
             tmp_path = os.path.join(tempfile.gettempdir(), uploaded_file.name)
             image.save(tmp_path, format="JPEG")
             return tmp_path
@@ -114,7 +115,7 @@ with col2:
         def render_chapter(title, content, image_info):
             chapter_elements = []
             width = image_info.get('width', 12) if image_info else 12
-            if image_info and image_info['position'] == "\u00dcber Text":
+            if image_info and image_info['position'] == "Über Text":
                 img_path = convert_uploaded_image(image_info['file'], max_width=width)
                 if img_path:
                     chapter_elements.append(RLImage(img_path, width=width*cm, preserveAspectRatio=True))
@@ -168,18 +169,18 @@ with col2:
         if image_files:
             for i, img in enumerate(image_files):
                 chapter = st.text_input(f"Kapitel für Bild ({img.name})", key=f"ch_{i}")
-                position = st.selectbox("Bildposition", ["Unter Text", "\u00dcber Text", "Neben Text", "Hinter Text"], key=f"pos_{i}")
+                position = st.selectbox("Bildposition", ["Unter Text", "Über Text", "Neben Text", "Hinter Text"], key=f"pos_{i}")
                 width = st.slider(f"Breite in cm für {img.name}", 4, 16, 12, key=f"width_{i}")
                 if chapter:
                     chapter_image_map[chapter.lower()] = {"file": img, "position": position, "width": width}
 
-    if st.button("\ud83d\udcc4 PDF erstellen"):
+    if st.button("📄 PDF erstellen"):
         if not text_input:
             st.warning("Bitte Text eingeben.")
         else:
             pdf_buffer = generate_ebook(text_input, chapter_image_map, page_sizes[page_size_option])
-            st.download_button("\ud83d\udcd8 E-Book herunterladen", data=pdf_buffer, file_name="ebook.pdf", mime="application/pdf")
-            with st.expander("\ud83d\udcc4 Vorschau anzeigen"):
+            st.download_button("📘 E-Book herunterladen", data=pdf_buffer, file_name="ebook.pdf", mime="application/pdf")
+            with st.expander("📄 Vorschau anzeigen"):
                 base64_pdf = base64.b64encode(pdf_buffer.read()).decode('utf-8')
                 pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600px" type="application/pdf"></iframe>'
                 st.markdown(pdf_display, unsafe_allow_html=True)
