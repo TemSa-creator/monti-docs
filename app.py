@@ -150,10 +150,6 @@ with col2:
                     for line in content:
                         chapter_elements.append(Paragraph(line, custom_style))
                         chapter_elements.append(Spacer(1, 6))
-                else:
-                    for line in content:
-                        chapter_elements.append(Paragraph(line, custom_style))
-                        chapter_elements.append(Spacer(1, 6))
                 chapter_elements.append(Spacer(1, 6))
             chapter_elements.append(text_table)
                     return chapter_elements
