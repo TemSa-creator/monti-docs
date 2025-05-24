@@ -126,12 +126,24 @@ with col2:
             if image_info and image_info['position'] == "Neben Text":
                 img_path = convert_uploaded_image(image_info['file'], max_width=width)
                 if img_path:
-                    chapter_elements.append(
-                        Table(
-                            [[RLImage(img_path, width=width*cm), Paragraph("<br/>".join(content), custom_style)]],
-                            colWidths=[width*cm, None]
+                    try:
+                        chapter_elements.append(
+                            Table(
+                                [[RLImage(img_path, width=width*cm), Paragraph("<br/>".join(content), custom_style)]],
+                                colWidths=[width*cm, None]
+                            )
                         )
-                    )
+                    except Exception as e:
+                        chapter_elements.append(Paragraph("[Fehler bei Tabellenlayout mit Bild]", custom_style))
+                        chapter_elements.append(Paragraph("<br/>".join(content), custom_style))
+            elif image_info and image_info['position'] == "Hinter Text":
+                img_path = convert_uploaded_image(image_info['file'], max_width=width)
+                if img_path:
+                    chapter_elements.append(RLImage(img_path, width=width*cm))
+                    chapter_elements.append(Spacer(1, 6))
+                for line in content:
+                    chapter_elements.append(Paragraph(line, custom_style))
+                    chapter_elements.append(Spacer(1, 6))
             else:
                 for line in content:
                     chapter_elements.append(Paragraph(line, custom_style))
