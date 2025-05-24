@@ -141,13 +141,7 @@ with col2:
                     except Exception as e:
                         chapter_elements.append(Paragraph("[Fehler bei Tabellenlayout mit Bild]", custom_style))
                         chapter_elements.append(Paragraph("<br/>".join(content), custom_style))
-            elif image_info and image_info['position'] == "Hinter Text":
-                img_path = convert_uploaded_image(image_info['file'], max_width=width)
-                if img_path:
-                    chapter_elements.append(Paragraph("<img src='{}' width='100%'/>".format(img_path.getvalue().decode('latin1')), custom_style))
-                for line in content:
-                    chapter_elements.append(Paragraph(line, custom_style))
-            chapter_elements.append(Spacer(1, 12))
+            
             return chapter_elements
 
         for line in lines:
@@ -180,7 +174,7 @@ with col2:
                 with st.expander(f"Bild-Einstellungen: {img.name}"):
                     st.image(img, width=200)
                     chapter = st.selectbox("Kapitel für dieses Bild auswählen", chapter_titles, key=f"ch_{i}")
-                    position = st.selectbox("Position im Kapitel", ["Unter Text", "Über Text", "Neben Text", "Hinter Text"], key=f"pos_{i}")
+                    position = st.selectbox("Position im Kapitel", ["Unter Text", "Über Text", "Neben Text"], key=f"pos_{i}")
                     width = st.slider("Bildbreite in cm", 4, 16, 12, key=f"width_{i}")
                     if chapter:
                         chapter_image_map[chapter.lower()] = {"file": img, "position": position, "width": width}
