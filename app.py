@@ -144,10 +144,9 @@ with col2:
             elif image_info and image_info['position'] == "Hinter Text":
                 img_path = convert_uploaded_image(image_info['file'], max_width=width)
                 if img_path:
-                    chapter_elements.append(RLImage(img_path, width=width*cm))
-                    chapter_elements.append(Spacer(1, 6))
-                    for line in content:
-                        chapter_elements.append(Paragraph(line, custom_style))
+                    chapter_elements.append(Paragraph("<img src='{}' width='100%'/>".format(img_path.getvalue().decode('latin1')), custom_style))
+                for line in content:
+                    chapter_elements.append(Paragraph(line, custom_style))
             chapter_elements.append(Spacer(1, 12))
             return chapter_elements
 
