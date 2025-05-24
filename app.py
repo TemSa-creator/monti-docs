@@ -176,6 +176,21 @@ with col2:
 
     chapter_elements.append(Spacer(1, 12))
     return chapter_elements
+            except Exception as e:
+                chapter_elements.append(Paragraph("[Fehler bei Tabellenlayout mit Bild]", custom_style))
+
+    for line in content:
+        chapter_elements.append(Paragraph(line, custom_style))
+        chapter_elements.append(Spacer(1, 6))
+
+    if image_info and image_info['position'] == "Unter Text":
+        img_path = convert_uploaded_image(image_info['file'], max_width=width)
+        if img_path:
+            chapter_elements.append(Spacer(1, 12))
+            chapter_elements.append(RLImage(img_path, width=width*cm))
+
+    chapter_elements.append(Spacer(1, 12))
+    return chapter_elements
                 except Exception as e:
                     chapter_elements.append(Paragraph("[Fehler bei Tabellenlayout mit Bild]", custom_style))
 
