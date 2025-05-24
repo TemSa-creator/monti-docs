@@ -137,9 +137,16 @@ with col2:
                             ('LEFTPADDING', (0, 0), (-1, -1), 6),
                             ('RIGHTPADDING', (0, 0), (-1, -1), 6),
                         ]))
+                        for line in content:
+                chapter_elements.append(Paragraph(line, custom_style))
+                chapter_elements.append(Spacer(1, 6))
+            return chapter_elements
                         chapter_elements.append(text_table)
                     except Exception as e:
                         chapter_elements.append(Paragraph("[Fehler bei Tabellenlayout mit Bild]", custom_style))
+                        for line in content:
+                            chapter_elements.append(Paragraph(line, custom_style))
+                        return chapter_elements)
                         chapter_elements.append(Paragraph("<br/>".join(content), custom_style))
             
             return chapter_elements
