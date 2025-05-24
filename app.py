@@ -145,7 +145,9 @@ with col2:
                 img_path = convert_uploaded_image(image_info['file'], max_width=width)
                 if img_path:
                     chapter_elements.append(RLImage(img_path, width=width*cm))
-                    chapter_elements.append(Spacer(1, 6)) – nicht unterstützt]", custom_style))
+                    chapter_elements.append(Spacer(1, 6))
+                    for line in content:
+                        chapter_elements.append(Paragraph(line, custom_style))
             chapter_elements.append(Spacer(1, 12))
             return chapter_elements
 
