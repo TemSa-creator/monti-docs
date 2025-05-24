@@ -140,7 +140,7 @@ with col2:
                 img_path = convert_uploaded_image(image_info['file'], max_width=width)
                 if img_path:
                     chapter_elements.append(Spacer(1, 12))
-                    chapter_elements.append(RLImage(img_path, width=width*cm, preserveAspectRatio=True))
+                    chapter_elements.append(RLImage(img_path, width=width*cm))
             if image_info and image_info['position'] == "Hinter Text":
                 chapter_elements.append(Paragraph("[Bild hinter Text – nicht unterstützt]", custom_style))
             chapter_elements.append(Spacer(1, 12))
