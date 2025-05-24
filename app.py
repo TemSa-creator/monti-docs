@@ -148,8 +148,8 @@ with col2:
                         chapter_elements.append(Paragraph(line, custom_style))
                         chapter_elements.append(Spacer(1, 6))
                 chapter_elements.append(Spacer(1, 6))
-            return chapter_elements
-                        chapter_elements.append(text_table)
+            chapter_elements.append(text_table)
+                return chapter_elements
                     except Exception as e:
                         chapter_elements.append(Paragraph("[Fehler bei Tabellenlayout mit Bild]", custom_style))
                         for line in content:
