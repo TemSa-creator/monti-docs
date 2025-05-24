@@ -127,12 +127,17 @@ with col2:
                 img_path = convert_uploaded_image(image_info['file'], max_width=width)
                 if img_path:
                     try:
-                        chapter_elements.append(
-                            Table(
-                                [[RLImage(img_path, width=width*cm), Paragraph("<br/>".join(content), custom_style)]],
-                                colWidths=[width*cm, None]
-                            )
+                        img = RLImage(img_path, width=width*cm)
+                        text_table = Table(
+                            [[img, Paragraph("<br/>".join(content), custom_style)]],
+                            colWidths=[width*cm, None]
                         )
+                        text_table.setStyle(TableStyle([
+                            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                            ('LEFTPADDING', (0, 0), (-1, -1), 6),
+                            ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+                        ]))
+                        chapter_elements.append(text_table)
                     except Exception as e:
                         chapter_elements.append(Paragraph("[Fehler bei Tabellenlayout mit Bild]", custom_style))
                         chapter_elements.append(Paragraph("<br/>".join(content), custom_style))
@@ -140,21 +145,7 @@ with col2:
                 img_path = convert_uploaded_image(image_info['file'], max_width=width)
                 if img_path:
                     chapter_elements.append(RLImage(img_path, width=width*cm))
-                    chapter_elements.append(Spacer(1, 6))
-                for line in content:
-                    chapter_elements.append(Paragraph(line, custom_style))
-                    chapter_elements.append(Spacer(1, 6))
-            else:
-                for line in content:
-                    chapter_elements.append(Paragraph(line, custom_style))
-                    chapter_elements.append(Spacer(1, 6))
-            if image_info and image_info['position'] == "Unter Text":
-                img_path = convert_uploaded_image(image_info['file'], max_width=width)
-                if img_path:
-                    chapter_elements.append(Spacer(1, 12))
-                    chapter_elements.append(RLImage(img_path, width=width*cm))
-            if image_info and image_info['position'] == "Hinter Text":
-                chapter_elements.append(Paragraph("[Bild hinter Text – nicht unterstützt]", custom_style))
+                    chapter_elements.append(Spacer(1, 6)) – nicht unterstützt]", custom_style))
             chapter_elements.append(Spacer(1, 12))
             return chapter_elements
 
