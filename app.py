@@ -116,36 +116,51 @@ with col2:
         chapter_content = []
 
         def render_chapter(title, content, image_info):
-    chapter_elements = []
-    width = image_info.get('width', 12) if image_info else 12
+        chapter_elements = []
+        width = image_info.get('width', 12) if image_info else 12
 
-    if image_info and image_info['position'] == "Über Text":
-        img_path = convert_uploaded_image(image_info['file'], max_width=width)
-        if img_path:
-            chapter_elements.append(RLImage(img_path, width=width*cm))
+        if image_info and image_info['position'] == "Über Text":
+            img_path = convert_uploaded_image(image_info['file'], max_width=width)
+            if img_path:
+                chapter_elements.append(RLImage(img_path, width=width*cm))
+            chapter_elements.append(Spacer(1, 6))
+
+        chapter_elements.append(Paragraph(title.title(), title_style))
         chapter_elements.append(Spacer(1, 6))
 
-    chapter_elements.append(Paragraph(title.title(), title_style))
-    chapter_elements.append(Spacer(1, 6))
+        if image_info and image_info['position'] == "Neben Text":
+            img_path = convert_uploaded_image(image_info['file'], max_width=width)
+            if img_path:
+                try:
+                    img = RLImage(img_path, width=width*cm)
+                    text_para = Paragraph("<br/>".join(content), custom_style)
+                    text_table = Table(
+                        [[img, text_para]],
+                        colWidths=[width*cm, None]
+                    )
+                    text_table.setStyle(TableStyle([
+                        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                        ('LEFTPADDING', (0, 0), (-1, -1), 6),
+                        ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+                    ]))
+                    chapter_elements.append(text_table)
+                    chapter_elements.append(Spacer(1, 6))
+                    return chapter_elements
+                except Exception as e:
+                    chapter_elements.append(Paragraph("[Fehler bei Tabellenlayout mit Bild]", custom_style))
 
-    if image_info and image_info['position'] == "Neben Text":
-        img_path = convert_uploaded_image(image_info['file'], max_width=width)
-        if img_path:
-            try:
-                img = RLImage(img_path, width=width*cm)
-                text_para = Paragraph("<br/>".join(content), custom_style)
-                text_table = Table(
-                    [[img, text_para]],
-                    colWidths=[width*cm, None]
-                )
-                text_table.setStyle(TableStyle([
-                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                    ('LEFTPADDING', (0, 0), (-1, -1), 6),
-                    ('RIGHTPADDING', (0, 0), (-1, -1), 6),
-                ]))
-                chapter_elements.append(text_table)
-                chapter_elements.append(Spacer(1, 6))
-                return chapter_elements
+        for line in content:
+            chapter_elements.append(Paragraph(line, custom_style))
+            chapter_elements.append(Spacer(1, 6))
+
+        if image_info and image_info['position'] == "Unter Text":
+            img_path = convert_uploaded_image(image_info['file'], max_width=width)
+            if img_path:
+                chapter_elements.append(Spacer(1, 12))
+                chapter_elements.append(RLImage(img_path, width=width*cm))
+
+        chapter_elements.append(Spacer(1, 12))
+        return chapter_elements
             except Exception as e:
                 chapter_elements.append(Paragraph("[Fehler bei Tabellenlayout mit Bild]", custom_style))
 
